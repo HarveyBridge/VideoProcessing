@@ -266,7 +266,6 @@ paket-files/
 # ======================= Xilinx =====================
 # intermediate build files
 *.bgn
-*.bit
 *.bld
 *.cmd_log
 *.drc
