@@ -378,7 +378,8 @@ if rst_system = '0' then
 	buf_data_state <= "00";
 else
 	if rising_edge(clk_video) then
-		if (buf_vga_en = '1' and f_video_en = '0' and cnt_video_hsync < 1290) then
+		-- if (buf_vga_en = '1' and f_video_en = '0' and cnt_video_hsync < 1290) then
+		if (buf_vga_en = '1' and cnt_video_hsync < 1290) then
 			if buf_data_state = "11" then
 				buf_data_state <= "00";
 			else
@@ -524,7 +525,7 @@ else
 				end if;
 			else
 				--if ((SB_XSCR > "0001100000" and SB_XSCR < "0011100000") or (SB_YSCR > "0001100000" and SB_YSCR < "0011100000")) then
-				if (SB_XSCR > "0011000000" or SB_YSCR > "0011000000") then
+				if (SB_XSCR > "0010000000" or SB_YSCR > "0010000000") then
 					SB_CRB_data <= '1';
 				else
 					SB_CRB_data <= '0';
