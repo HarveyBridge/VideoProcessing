@@ -82,7 +82,7 @@ signal buf_vga_Y_out_cnt : integer range 0 to 639:=639;
 signal boundary_edge_H : integer range 0 to 639:=250; -- 100 to 250
 signal boundary_edge_V : integer range 0 to 639:=300; -- 100 to 300
 
-type SquareArray is ARRAY (integer range 0 to 30000) of std_logic_vector(7 downto 0);
+type SquareArray is ARRAY (integer range 0 to 300) of std_logic_vector(7 downto 0);
 signal available_frame	: SquareArray;
 signal available_frame_cnt : integer range 0 to 32767:=0;
 
