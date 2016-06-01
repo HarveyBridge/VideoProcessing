@@ -170,6 +170,7 @@ signal SB_CRB_data : std_logic:='0';
 ----------|
 --SB End--|
 ----------|
+signal shift_buf_cnt : integer range 0 to 15:=0;
 
 begin
 
@@ -210,37 +211,107 @@ process(rst_system, clk_video)
 begin
 if rst_system = '0' then
 	buf_vga_state <= "00";
-	buf_vga_Y_in_cnt <= 0;
+	SB_buf_0_data_1 <= "0000000000";
+	SB_buf_0_data_2 <= "0000000000";
+	SB_buf_0_data_3 <= "0000000000";
+	SB_buf_1_data_1 <= "0000000000";
+	SB_buf_1_data_2 <= "0000000000";
+	SB_buf_1_data_3 <= "0000000000";
+	SB_buf_2_data_1 <= "0000000000";
+	SB_buf_2_data_2 <= "0000000000";
+	SB_buf_2_data_3 <= "0000000000";
+	SB_buf_cnt <= 0;
+	shift_buf_cnt <= 0 ;
 else
 	if rising_edge(clk_video) then
 		if (buf_vga_en = '1' and cnt_video_hsync < 1280) then
-			case buf_vga_state is
-				when "00" => buf_vga_state <= "01";
-				when "01" => buf_vga_state <= "10";
-								 buf_vga_Y2(buf_vga_Y_in_cnt) <= data_video(7 downto 0);
-								 if buf_vga_Y_in_cnt = 639 then
-									 buf_vga_Y_in_cnt <= 0;
-								 else
-									 buf_vga_Y_in_cnt <= buf_vga_Y_in_cnt + 1;
-								 end if;
-				when "10" => buf_vga_state <= "11";
-				when "11" => buf_vga_state <= "00";
-								 buf_vga_Y2(buf_vga_Y_in_cnt) <= data_video(7 downto 0);
-								 if buf_vga_Y_in_cnt = 639 then
-									 buf_vga_Y_in_cnt <= 0;
-								 else
-									 buf_vga_Y_in_cnt <= buf_vga_Y_in_cnt + 1;
-								 end if;
-				when others => null;
-			end case;
-		else
-			
+			if buf_data_state(0) = '0' then
+				SB_buf_0_data_3 <= "00" & SB_buf_0(SB_buf_cnt);
+				SB_buf_0_data_2 <= SB_buf_0_data_3;
+				SB_buf_0_data_1 <= SB_buf_0_data_2;
+				SB_buf_1_data_3 <= "00" & SB_buf_1(SB_buf_cnt);
+				SB_buf_1_data_2 <= SB_buf_1_data_3;
+				SB_buf_1_data_1 <= SB_buf_1_data_2;
+				SB_buf_2_data_3 <= "00" & SB_buf_2(SB_buf_cnt);
+				SB_buf_2_data_2 <= SB_buf_2_data_3;
+				SB_buf_2_data_1 <= SB_buf_2_data_2;
+				
+				-- if shift_buf_cnt = 2 then
+					-- buf_vga_Y2(buf_vga_Y_in_cnt) <= buf_vga_Y2(buf_vga_Y_in_cnt-2);
+					-- shift_buf_cnt <= 0 ;
+				-- end if;
+			else	
+				SB_buf_0(SB_buf_cnt) <= SB_buf_1_data_3(7 downto 0);
+				SB_buf_1(SB_buf_cnt) <= SB_buf_2_data_3(7 downto 0);
+				SB_buf_2(SB_buf_cnt) <= data_video;
+				----------------------------------------------------------------------
+					buf_vga_Y2(buf_vga_Y_in_cnt) <= data_video(7 downto 0);
+					if buf_vga_Y_in_cnt = 639 then
+						buf_vga_Y_in_cnt <= 0;
+					else
+						buf_vga_Y_in_cnt <= buf_vga_Y_in_cnt + 1;
+					end if;
+				shift_buf_cnt <= shift_buf_cnt + 1;
+				----------------------------------------------------------------------
+				if SB_buf_cnt = SB_buf_cnt_max then
+					SB_buf_cnt <= 0;
+				else
+					SB_buf_cnt <= SB_buf_cnt + 1;
+				end if;	
+			end if;
+		else			
 			buf_vga_state <= "00";
-			buf_vga_Y_in_cnt <= 0;
+			SB_buf_0_data_1 <= "0000000000";
+			SB_buf_0_data_2 <= "0000000000";
+			SB_buf_0_data_3 <= "0000000000";
+			SB_buf_1_data_1 <= "0000000000";
+			SB_buf_1_data_2 <= "0000000000";
+			SB_buf_1_data_3 <= "0000000000";
+			SB_buf_2_data_1 <= "0000000000";
+			SB_buf_2_data_2 <= "0000000000";
+			SB_buf_2_data_3 <= "0000000000";
+			SB_buf_cnt <= 0;
 		end if;
 	end if;
 end if;
 end process;
+
+-- process(rst_system, clk_video)
+-- begin
+-- if rst_system = '0' then
+	-- buf_vga_state <= "00";
+	-- buf_vga_Y_in_cnt <= 0;
+-- else
+	-- if rising_edge(clk_video) then
+		-- if (buf_vga_en = '1' and cnt_video_hsync < 1280) then
+			-- case buf_vga_state is
+				-- when "00" => buf_vga_state <= "01";
+				-- when "01" => buf_vga_state <= "10";
+								 -- buf_vga_Y2(buf_vga_Y_in_cnt) <= data_video(7 downto 0);
+								 -- if buf_vga_Y_in_cnt = 639 then
+									 -- buf_vga_Y_in_cnt <= 0;
+								 -- else
+									 -- buf_vga_Y_in_cnt <= buf_vga_Y_in_cnt + 1;
+								 -- end if;
+				-- when "10" => buf_vga_state <= "11";
+				-- when "11" => buf_vga_state <= "00";
+								 -- buf_vga_Y2(buf_vga_Y_in_cnt) <= data_video(7 downto 0);
+								 -- if buf_vga_Y_in_cnt = 639 then
+									 -- buf_vga_Y_in_cnt <= 0;
+								 -- else
+									 -- buf_vga_Y_in_cnt <= buf_vga_Y_in_cnt + 1;
+								 -- end if;
+				-- when others => null;
+			-- end case;
+		-- else
+			
+			-- buf_vga_state <= "00";
+			-- buf_vga_Y_in_cnt <= 0;
+		-- end if;
+	-- end if;
+-- end if;
+-- end process;
+
 --VGA-buffer-8bit------------------------------------------------------------------------------------------------
 
 --int <= CONV_INTEGER(std_logic(MSB downto LSB));
@@ -251,95 +322,43 @@ if rst_system = '0' then
 	r_vga <= "000";
 	g_vga <= "000";
 	b_vga <= "000";
-	-- buf_vga_Y_out_cnt <= 0;
+	buf_vga_Y_out_cnt <= 0;
 	-- show_frame_en <= '0';
 	-- available_frame_value <= 0;
 elsif rising_edge(clk_video) then
 			-- even  odd
+		-- if (((f_video_en = '0' and black_vga_en = '0') or (f_video_en = '1' and black_vga_en = '1')) and cnt_h_sync_vga > 1 and cnt_h_sync_vga < 640 and cnt_v_sync_vga > 1 and cnt_v_sync_vga < 480)   then
+				
+			-- buf_vga_Y_out_cnt <= buf_vga_Y_out_cnt - 1;		
+			-- r_vga <= buf_vga_Y2(buf_vga_Y_out_cnt)(7 downto 5);
+			-- g_vga <= buf_vga_Y2(buf_vga_Y_out_cnt)(7 downto 5);
+			-- b_vga <= buf_vga_Y2(buf_vga_Y_out_cnt)(7 downto 5);
+			
+			
+			-- -- ((f_video_en = '0' and black_vga_en = '0') or (f_video_en = '1' and black_vga_en = '1'))
+		-- if ( cnt_h_sync_vga > 1 and cnt_h_sync_vga < 640 and cnt_v_sync_vga > 1 and cnt_v_sync_vga < 480)   then	
+			-- if  (f_video_en = '1' and black_vga_en = '1') then
+				-- if SB_CRB_data = '1' then
+					-- r_vga <= "111";
+					-- g_vga <= "000";
+					-- b_vga <= "000";
+				-- else
+					-- r_vga <= "000";
+					-- g_vga <= "000";
+					-- b_vga <= "000";
+				-- end if;
+			-- else
+				-- if SB_CRB_data = '1' then
+					-- r_vga <= "111";
+					-- g_vga <= "111";
+					-- b_vga <= "111";
+				-- else
+					-- r_vga <= "000";
+					-- g_vga <= "000";
+					-- b_vga <= "000";
+				-- end if;
+			-- end if;
 		if (((f_video_en = '0' and black_vga_en = '0') or (f_video_en = '1' and black_vga_en = '1')) and cnt_h_sync_vga > 1 and cnt_h_sync_vga < 640 and cnt_v_sync_vga > 1 and cnt_v_sync_vga < 480)   then
-			if(cnt_v_sync_vga > 1 and cnt_v_sync_vga < 10) then
-				if((cnt_h_sync_vga = 50)or(cnt_h_sync_vga = 100)or(cnt_h_sync_vga = 150)or(cnt_h_sync_vga = 200)or(cnt_h_sync_vga = 250)or(cnt_h_sync_vga = 300)or(cnt_h_sync_vga = 350)or(cnt_h_sync_vga = 400)or(cnt_h_sync_vga = 450)or(cnt_h_sync_vga = 500)or(cnt_h_sync_vga = 550)or(cnt_h_sync_vga = 600)) then										
-					if(cnt_h_sync_vga = 50)then
-						r_vga <= "111";
-						g_vga <= "000";
-						b_vga <= "000";
-					else
-						if(cnt_h_sync_vga = 100)then
-							r_vga <= "000";
-							g_vga <= "111";
-							b_vga <= "111";
-						else
-							if(cnt_h_sync_vga = 150)then
-								r_vga <= "111";
-								g_vga <= "000";
-								b_vga <= "000";
-							else
-								if(cnt_h_sync_vga = 200)then
-									r_vga <= "000";
-									g_vga <= "111";
-									b_vga <= "111";
-								else
-									if(cnt_h_sync_vga = 250)then
-										r_vga <= "111";
-										g_vga <= "000";
-										b_vga <= "000";
-									else
-										if(cnt_h_sync_vga = 300)then
-											r_vga <= "000";
-											g_vga <= "111";
-											b_vga <= "111";
-										else
-											if(cnt_h_sync_vga = 350)then
-												r_vga <= "111";
-												g_vga <= "000";
-												b_vga <= "000";
-											else
-												if(cnt_h_sync_vga = 400)then
-													r_vga <= "000";
-													g_vga <= "111";
-													b_vga <= "111";
-												else
-													if(cnt_h_sync_vga = 450)then
-														r_vga <= "111";
-														g_vga <= "000";
-														b_vga <= "000";
-													else
-														if(cnt_h_sync_vga = 500)then
-															r_vga <= "000";
-															g_vga <= "111";
-															b_vga <= "111";
-														else
-															if(cnt_h_sync_vga = 550)then
-																r_vga <= "111";
-																g_vga <= "000";
-																b_vga <= "000";
-															else -- 600
-																r_vga <= "000";
-																g_vga <= "111";
-																b_vga <= "111";
-															end if;
-														end if;	
-													end if;	
-												end if;
-											end if;
-										end if;	
-									end if;	
-								end if;
-							end if;
-						end if;
-					end if;
-				else
-					if SB_CRB_data = '1' then
-						r_vga <= "111";
-						g_vga <= "111";
-						b_vga <= "111";
-					else
-						r_vga <= "000";
-						g_vga <= "000";
-						b_vga <= "000";
-					end if;
-				end if;				
-			else
 				if SB_CRB_data = '1' then
 					r_vga <= "111";
 					g_vga <= "111";
@@ -349,12 +368,13 @@ elsif rising_edge(clk_video) then
 					g_vga <= "000";
 					b_vga <= "000";
 				end if;
-			end if;
+		
+			
 		else
 			r_vga <= "000";
 			g_vga <= "000";
 			b_vga <= "000";
-			--buf_vga_Y_out_cnt <= 639;
+			buf_vga_Y_out_cnt <= 639;
 			--available_frame_cnt <= 300;
 			--available_frame_en <= '0';
 			--available_frame_value <= 0;
@@ -395,7 +415,7 @@ else
 						buf_sobel_cc_en <= '1';
 					end if;
 				else
-					if range_total_cnt < 1280 then
+					if range_total_cnt < 1290 then
 						SBB_buf_en <= '1';
 						SB_buf_012_en <= '1';
 						buf_sobel_cc_en <= '1';
@@ -433,59 +453,73 @@ else
 end if;
 end process;
 --Buf-state---------------------------------------------------------------------------------------------------
---Sobel-Buffer------------------------------------------------------------------------------------------------
-process(rst_system, clk_video)
-begin
-if rst_system = '0' then
-	SB_buf_0_data_1 <= "0000000000";
-	SB_buf_0_data_2 <= "0000000000";
-	SB_buf_0_data_3 <= "0000000000";
-	SB_buf_1_data_1 <= "0000000000";
-	SB_buf_1_data_2 <= "0000000000";
-	SB_buf_1_data_3 <= "0000000000";
-	SB_buf_2_data_1 <= "0000000000";
-	SB_buf_2_data_2 <= "0000000000";
-	SB_buf_2_data_3 <= "0000000000";
-	SB_buf_cnt <= 0;
-else
-	if rising_edge(clk_video) then
-		if SB_buf_012_en = '1' then
-			if buf_data_state(0) = '0' then
-				SB_buf_0_data_3 <= "00" & SB_buf_0(SB_buf_cnt);
-				SB_buf_0_data_2 <= SB_buf_0_data_3;
-				SB_buf_0_data_1 <= SB_buf_0_data_2;
-				SB_buf_1_data_3 <= "00" & SB_buf_1(SB_buf_cnt);
-				SB_buf_1_data_2 <= SB_buf_1_data_3;
-				SB_buf_1_data_1 <= SB_buf_1_data_2;
-				SB_buf_2_data_3 <= "00" & SB_buf_2(SB_buf_cnt);
-				SB_buf_2_data_2 <= SB_buf_2_data_3;
-				SB_buf_2_data_1 <= SB_buf_2_data_2;
-			else	
-				SB_buf_0(SB_buf_cnt) <= SB_buf_1_data_3(7 downto 0);
-				SB_buf_1(SB_buf_cnt) <= SB_buf_2_data_3(7 downto 0);
-				SB_buf_2(SB_buf_cnt) <= data_video;
+
+-- -- Sobel-Buffer------------------------------------------------------------------------------------------------
+-- process(rst_system, clk_video)
+-- begin
+-- if rst_system = '0' then
+	-- SB_buf_0_data_1 <= "0000000000";
+	-- SB_buf_0_data_2 <= "0000000000";
+	-- SB_buf_0_data_3 <= "0000000000";
+	-- SB_buf_1_data_1 <= "0000000000";
+	-- SB_buf_1_data_2 <= "0000000000";
+	-- SB_buf_1_data_3 <= "0000000000";
+	-- SB_buf_2_data_1 <= "0000000000";
+	-- SB_buf_2_data_2 <= "0000000000";
+	-- SB_buf_2_data_3 <= "0000000000";
+	-- SB_buf_cnt <= 0;
+	-- shift_buf_cnt <= 0;
+-- else
+	-- if rising_edge(clk_video) then
+		-- if SB_buf_012_en = '1' then
+			-- if buf_data_state(0) = '0' then
+				-- SB_buf_0_data_3 <= "00" & SB_buf_0(SB_buf_cnt);
+				-- SB_buf_0_data_2 <= SB_buf_0_data_3;
+				-- SB_buf_0_data_1 <= SB_buf_0_data_2;
+				-- SB_buf_1_data_3 <= "00" & SB_buf_1(SB_buf_cnt);
+				-- SB_buf_1_data_2 <= SB_buf_1_data_3;
+				-- SB_buf_1_data_1 <= SB_buf_1_data_2;
+				-- SB_buf_2_data_3 <= "00" & SB_buf_2(SB_buf_cnt);
+				-- SB_buf_2_data_2 <= SB_buf_2_data_3;
+				-- SB_buf_2_data_1 <= SB_buf_2_data_2;
 				
-				if SB_buf_cnt = SB_buf_cnt_max then
-					SB_buf_cnt <= SB_buf_cnt_max;
-				else
-					SB_buf_cnt <= SB_buf_cnt + 1;
-				end if;	
-			end if;
-		else
-			SB_buf_0_data_1 <= "0000000000";
-			SB_buf_0_data_2 <= "0000000000";
-			SB_buf_0_data_3 <= "0000000000";
-			SB_buf_1_data_1 <= "0000000000";
-			SB_buf_1_data_2 <= "0000000000";
-			SB_buf_1_data_3 <= "0000000000";
-			SB_buf_2_data_1 <= "0000000000";
-			SB_buf_2_data_2 <= "0000000000";
-			SB_buf_2_data_3 <= "0000000000";
-			SB_buf_cnt <= 0;
-		end if;
-	end if;
-end if;
-end process;
+				-- if shift_buf_cnt = 1 then
+					-- SB_buf_2(SB_buf_cnt) <= SB_buf_2(SB_buf_cnt-1);
+					-- shift_buf_cnt <= 0 ;
+				-- end if;
+			-- else	
+				-- SB_buf_0(SB_buf_cnt) <= SB_buf_1_data_3(7 downto 0);
+				-- SB_buf_1(SB_buf_cnt) <= SB_buf_2_data_3(7 downto 0);
+				-- SB_buf_2(SB_buf_cnt) <= data_video;
+					-- -- buf_vga_Y2(buf_vga_Y_in_cnt) <= data_video(7 downto 0);
+					-- -- if buf_vga_Y_in_cnt = 639 then
+						-- -- buf_vga_Y_in_cnt <= 0;
+					-- -- else
+						-- -- buf_vga_Y_in_cnt <= buf_vga_Y_in_cnt + 1;
+					-- -- end if;
+				-- shift_buf_cnt <= shift_buf_cnt + 1;
+				
+				-- if SB_buf_cnt = SB_buf_cnt_max then
+					-- SB_buf_cnt <= SB_buf_cnt_max;
+				-- else
+					-- SB_buf_cnt <= SB_buf_cnt + 1;
+				-- end if;	
+			-- end if;
+		-- else
+			-- SB_buf_0_data_1 <= "0000000000";
+			-- SB_buf_0_data_2 <= "0000000000";
+			-- SB_buf_0_data_3 <= "0000000000";
+			-- SB_buf_1_data_1 <= "0000000000";
+			-- SB_buf_1_data_2 <= "0000000000";
+			-- SB_buf_1_data_3 <= "0000000000";
+			-- SB_buf_2_data_1 <= "0000000000";
+			-- SB_buf_2_data_2 <= "0000000000";
+			-- SB_buf_2_data_3 <= "0000000000";
+			-- SB_buf_cnt <= 0;
+		-- end if;
+	-- end if;
+-- end if;
+-- end process;
 --Sobel-Buffer------------------------------------------------------------------------------------------------
 
 --Sobel------------------------------------------------------------------------------------------------------
@@ -503,6 +537,7 @@ else
 	if rising_edge(clk_video) then
 		if buf_sobel_cc_en = '1' then
 			if buf_data_state(0) = '1' then
+			-- if buf_data_state(0) = '0' then
 				sobel_x_cc_1 := SB_buf_0_data_1 + SB_buf_0_data_2 + SB_buf_0_data_2 + SB_buf_0_data_3;
 				
 				sobel_x_cc_2 := SB_buf_2_data_1 + SB_buf_2_data_2 + SB_buf_2_data_2 + SB_buf_2_data_3;
@@ -525,7 +560,7 @@ else
 				end if;
 			else
 				--if ((SB_XSCR > "0001100000" and SB_XSCR < "0011100000") or (SB_YSCR > "0001100000" and SB_YSCR < "0011100000")) then
-				if (SB_XSCR > "0010000000" or SB_YSCR > "0010000000") then
+				if (SB_XSCR > "0011000000" or SB_YSCR > "0011000000") then
 					SB_CRB_data <= '1';
 				else
 					SB_CRB_data <= '0';
