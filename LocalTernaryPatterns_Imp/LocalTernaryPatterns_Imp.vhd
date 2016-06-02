@@ -34,7 +34,7 @@ port (
                 -- Debug
 					-- DebugOut : out  STD_LOGIC_vector(7 downto 0);
 					-- DebugPulse : inout  STD_LOGIC;
-					DebugMux	:in std_logic_vector(1 downto 0);
+					DebugMux	:in std_logic_vector(3 downto 0);
 					test : buffer std_logic;
 				--DebugLEDOut : inout  STD_LOGIC_vector(7 downto 0);
 				-- Test Zed pin
@@ -863,5 +863,28 @@ end if;
 end process;
 --############################################### LBP Calculate ###############################################--
 
-
+--############################################### DebugMux Matrix ###############################################--
+process(DebugMux)
+begin
+	case DebugMux is
+		when "0000"	=> R2C2_Encode_Threshold <= x"01";
+		when "0001"	=> R2C2_Encode_Threshold <= x"02";
+		when "0010"	=> R2C2_Encode_Threshold <= x"04";
+		when "0011"	=> R2C2_Encode_Threshold <= x"08";
+		when "0100"	=> R2C2_Encode_Threshold <= x"10";
+		when "0101"	=> R2C2_Encode_Threshold <= x"20";
+		when "0110"	=> R2C2_Encode_Threshold <= x"40";
+		when "0111"	=> R2C2_Encode_Threshold <= x"80";
+		when "1000"	=> R2C2_Encode_Threshold <= x"C0";
+		when "1001"	=> R2C2_Encode_Threshold <= x"E0";
+		when "1010"	=> R2C2_Encode_Threshold <= x"F0";
+		when "1011"	=> R2C2_Encode_Threshold <= x"F8";
+		when "1100"	=> R2C2_Encode_Threshold <= x"FC";
+		when "1101"	=> R2C2_Encode_Threshold <= x"FE";
+		when "1110"	=> R2C2_Encode_Threshold <= x"FF";		
+		when "1111"	=> R2C2_Encode_Threshold <= x"F5";	
+		when others	=> R2C2_Encode_Threshold <= x"01";
+	end case;
+end process;
+--############################################### DebugMux Matrix ###############################################--
 end architecture_LTP_Implement;
