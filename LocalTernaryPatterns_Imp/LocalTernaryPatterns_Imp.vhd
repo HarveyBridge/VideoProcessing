@@ -35,6 +35,7 @@ port (
 					-- DebugOut : out  STD_LOGIC_vector(7 downto 0);
 					-- DebugPulse : inout  STD_LOGIC;
 					DebugMux	:in std_logic_vector(1 downto 0);
+					test : buffer std_logic;
 				--DebugLEDOut : inout  STD_LOGIC_vector(7 downto 0);
 				-- Test Zed pin
 				--JB	: out std_logic_vector(3 downto 0);
@@ -210,8 +211,18 @@ signal Matrix_Buf_Length_Max : integer range 0 to 639:=639;
 ------------------------------|
 -- End of LBP Matrix = Matrix Buffer--|
 ------------------------------|
-signal shift_buf_cnt : integer range 0 to 15:=0;
 
+------------------|
+--LTP Calculate --|
+------------------|
+signal R2C2_Encode 				: std_logic_vector(7 downto 0);
+signal R2C2_Encode_Threshold	: std_logic_vector(7 downto 0):="00001111";
+signal R2C2_Encode_Bit			: std_logic_vector(7 downto 0);
+signal LTP_Value				: Matrix_Buf;
+signal LTP_Cnt					: integer range 0 to 639:=0;
+------------------|
+--LTP Calculate --|
+------------------|
 begin
 
 
@@ -263,7 +274,6 @@ if rst_system = '0' then
 	SB_buf_2_data_2 <= "0000000000";
 	SB_buf_2_data_3 <= "0000000000";
 	SB_buf_cnt <= 0;
-	shift_buf_cnt <= 0 ;
 else
 	if rising_edge(clk_video) then
 		if (buf_vga_en = '1' and cnt_video_hsync < 1280) then
@@ -347,10 +357,16 @@ elsif rising_edge(clk_video) then
 --			if  (f_video_en = '1' and black_vga_en = '1') then
 
 -- count address and show sobel
+			-- buf_vga_Y_out_cnt <= buf_vga_Y_out_cnt - 1;	
+			-- r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+			-- g_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+			-- b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+			
 			buf_vga_Y_out_cnt <= buf_vga_Y_out_cnt - 1;	
-			r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
-			g_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
-			b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+			r_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+			g_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+			b_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+			
 				-- if SB_CRB_data = '1' then
 					-- r_vga <= "111";
 					-- g_vga <= "000";
@@ -696,13 +712,11 @@ if rst_system = '0' then
 	SB_XSCR <= "0000000000";
 	SB_YSCR <= "0000000000";
 	SB_SUM  <= "00000000000";
--- system reset
 	redata_cnt <= 0 ;
 else
 	if rising_edge(clk_video) then
 		if buf_sobel_cc_en = '1' then
 			if LBP_Data_State(0) = '1' then
-			-- if buf_data_state(0) = '0' then
 				sobel_x_cc_1 := Matrix_R1C3 + Matrix_R2C3 + Matrix_R2C3 + Matrix_R3C3;
 				sobel_x_cc_2 := Matrix_R1C1 + Matrix_R2C1 + Matrix_R2C1 + Matrix_R3C1;
 				
@@ -743,6 +757,111 @@ else
 end if;
 end process;
 --############################################### Sobel Calculate ###############################################--
+
+
+--############################################### LBP Calculate ###############################################--
+process(rst_system, clk_video)
+
+variable R2C2_Encode_Reg_7	: std_logic_vector(9 downto 0);
+variable R2C2_Encode_Reg_6	: std_logic_vector(9 downto 0);
+variable R2C2_Encode_Reg_5	: std_logic_vector(9 downto 0);
+variable R2C2_Encode_Reg_4	: std_logic_vector(9 downto 0);
+variable R2C2_Encode_Reg_3	: std_logic_vector(9 downto 0);
+variable R2C2_Encode_Reg_2	: std_logic_vector(9 downto 0);
+variable R2C2_Encode_Reg_1	: std_logic_vector(9 downto 0);
+variable R2C2_Encode_Reg_0	: std_logic_vector(9 downto 0);
+
+
+begin
+if rst_system = '0' then
+	R2C2_Encode <= (others =>'0');
+	R2C2_Encode_Bit <= (others =>'0');
+	LTP_Cnt <= 0;
+else
+	if rising_edge(clk_video) then
+		if buf_sobel_cc_en = '1' then
+			if LBP_Data_State(0) = '1' then
+			-- if buf_data_state(0) = '0' then
+				
+				R2C2_Encode_Reg_7 := Matrix_R1C1 - Matrix_R2C2;
+				R2C2_Encode_Reg_6 := Matrix_R2C1 - Matrix_R2C2;
+				R2C2_Encode_Reg_5 := Matrix_R3C1 - Matrix_R2C2;
+				R2C2_Encode_Reg_4 := Matrix_R3C2 - Matrix_R2C2;				
+				R2C2_Encode_Reg_3 := Matrix_R3C3 - Matrix_R2C2;
+				R2C2_Encode_Reg_2 := Matrix_R2C3 - Matrix_R2C2;
+				R2C2_Encode_Reg_1 := Matrix_R1C3 - Matrix_R2C2;
+				R2C2_Encode_Reg_0 := Matrix_R1C2 - Matrix_R2C2;
+				
+				if R2C2_Encode_Reg_7 > R2C2_Encode_Threshold then
+					R2C2_Encode_Bit(7) <= '1';
+				else
+					R2C2_Encode_Bit(7) <= '0';
+				end if;
+				if R2C2_Encode_Reg_6 > R2C2_Encode_Threshold then
+					R2C2_Encode_Bit(6) <= '1';
+				else
+					R2C2_Encode_Bit(6) <= '0';
+				end if;
+				if R2C2_Encode_Reg_5 > R2C2_Encode_Threshold then
+					R2C2_Encode_Bit(5) <= '1';
+				else
+					R2C2_Encode_Bit(5) <= '0';
+				end if;
+				if R2C2_Encode_Reg_4 > R2C2_Encode_Threshold then
+					R2C2_Encode_Bit(4) <= '1';
+				else
+					R2C2_Encode_Bit(4) <= '0';
+				end if;				
+				if R2C2_Encode_Reg_3 > R2C2_Encode_Threshold then
+					R2C2_Encode_Bit(3) <= '1';
+				else
+					R2C2_Encode_Bit(3) <= '0';
+				end if;
+				if R2C2_Encode_Reg_2 > R2C2_Encode_Threshold then
+					R2C2_Encode_Bit(2) <= '1';
+				else
+					R2C2_Encode_Bit(2) <= '0';
+				end if;
+				if R2C2_Encode_Reg_1 > R2C2_Encode_Threshold then
+					R2C2_Encode_Bit(1) <= '1';
+				else
+					R2C2_Encode_Bit(1) <= '0';
+				end if;
+				if R2C2_Encode_Reg_0 > R2C2_Encode_Threshold then
+					R2C2_Encode_Bit(0) <= '1';
+				else
+					R2C2_Encode_Bit(0) <= '0';
+				end if;				
+			else
+				R2C2_Encode <= R2C2_Encode_Bit;
+				LTP_Value(LTP_Cnt) <= R2C2_Encode;
+				if LTP_Cnt < 639 then
+					LTP_Cnt <= LTP_Cnt + 1;
+				else
+					LTP_Cnt <= 0;
+				end if;
+				
+-- sum  X_sobel  &  Y_sobel
+				-- SB_SUM <= "00000000000"+SB_XSCR+SB_YSCR;
+-- -- put SUM_sobel to SB_buf_redata(0~640)
+				-- SB_buf_redata(redata_cnt) <= SB_SUM(9 downto 2); 
+-- -- counter redata_cnt to get SB_buf_redata address
+				-- if redata_cnt < 639 then
+					-- redata_cnt <= redata_cnt + 1;
+				-- else
+					-- redata_cnt <= 0;
+				-- end if;
+			end if;
+		else
+			R2C2_Encode <= (others =>'0');
+			R2C2_Encode_Bit <= (others =>'0');
+-- when cnt_video_hsync > 1280, let redata_cnt be reset
+			LTP_Cnt <= 0;
+		end if;
+	end if;
+end if;
+end process;
+--############################################### LBP Calculate ###############################################--
 
 
 end architecture_LTP_Implement;
