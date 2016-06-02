@@ -353,7 +353,7 @@ elsif rising_edge(clk_video) then
 --			if  (f_video_en = '1' and black_vga_en = '1') then
 
 -- count address and show sobel
-			buf_vga_Y_out_cnt <= buf_vga_Y_out_cnt + 1;	
+			buf_vga_Y_out_cnt <= buf_vga_Y_out_cnt - 1;	
 			r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
 			g_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
 			b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
@@ -393,7 +393,7 @@ elsif rising_edge(clk_video) then
 			r_vga <= "000";
 			g_vga <= "000";
 			b_vga <= "000";
-			buf_vga_Y_out_cnt <= 0;
+			buf_vga_Y_out_cnt <= 639;
 			--available_frame_cnt <= 300;
 			--available_frame_en <= '0';
 			--available_frame_value <= 0;
