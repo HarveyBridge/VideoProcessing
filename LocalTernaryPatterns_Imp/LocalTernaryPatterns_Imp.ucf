@@ -2,7 +2,8 @@ NET "scl"           LOC = Y11  | IOSTANDARD=LVCMOS33 | PULLUP;  # "JA1"
 NET "sda"           LOC = AA11 | IOSTANDARD=LVCMOS33 | PULLUP;  # "JA2"
 NET "clk_video"           LOC = AA9  | IOSTANDARD=LVCMOS33;  # "JA4"
 NET "rst_system"           LOC = M15  | IOSTANDARD=LVCMOS18;  # "SW7"
-
+NET "DebugMux[0]"           LOC = H18  | IOSTANDARD=LVCMOS18;  # "SW5"
+NET "DebugMux[1]"           LOC = H17  | IOSTANDARD=LVCMOS18;  # "SW6"
 
 NET "data_video[0]"         LOC = AA4  | IOSTANDARD=LVCMOS33;  # "JC2_N"
 NET "data_video[1]"         LOC = Y4   | IOSTANDARD=LVCMOS33;  # "JC2_P"
