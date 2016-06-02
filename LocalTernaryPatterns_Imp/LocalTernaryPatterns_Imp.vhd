@@ -94,8 +94,9 @@ signal boundary_edge_V : integer range 0 to 639:=300; -- 100 to 300
 -- signal show_frame_en : std_logic;
 -- signal show_frame_Icnt : integer range 0 to 32767:=0;
 --signal buf_vga_CbYCr_state : std_logic:='0';
---VGA-8bit-------------------------------------------------------------------------------------------------------
 
+--VGA-8bit-------------------------------------------------------------------------------------------------------
+--########## Component Defination ###################################################################################--	
 component video_in
 	Port ( 
             clk_video  : IN  std_logic;
@@ -126,7 +127,7 @@ component i2c
          );
 
 end component;
-
+--########## Component Defination ###################################################################################--	
 
 
 
@@ -140,6 +141,8 @@ signal buf_sobel_cc_en : std_logic:='0';
 signal buf_sobel_cc_delay : integer range 0 to 3:=0;
 signal SBB_buf_en : std_logic:='0';
 signal buf_data_state : std_logic_vector(1 downto 0):="00";
+
+signal LBP_Data_State : std_logic_vector(1 downto 0):="00";
 --state-------------------------------------------------------------------------------------------------------
 
 ---------------------|
@@ -181,12 +184,38 @@ signal SB_buf_switch : std_logic:='0';
 ----------|
 --SB End--|
 ----------|
+
+------------------------------|
+--LBP Matrix = Matrix Buffer--|
+------------------------------|
+type Matrix_Buf is array (integer range 0 to 639) of std_logic_vector ((8-1) downto 0);
+signal Matrix_Column_1 : Matrix_Buf;
+signal Matrix_R1C1 : std_logic_vector((10-1) downto 0):="0000000000";
+signal Matrix_R2C1 : std_logic_vector((10-1) downto 0):="0000000000";
+signal Matrix_R3C1 : std_logic_vector((10-1) downto 0):="0000000000";
+
+signal Matrix_Column_2 : Matrix_Buf;
+signal Matrix_R1C2 : std_logic_vector((10-1) downto 0):="0000000000";
+signal Matrix_R2C2 : std_logic_vector((10-1) downto 0):="0000000000";
+signal Matrix_R3C2 : std_logic_vector((10-1) downto 0):="0000000000";
+
+signal Matrix_Column_3 : Matrix_Buf;
+signal Matrix_R1C3 : std_logic_vector((10-1) downto 0):="0000000000";
+signal Matrix_R2C3 : std_logic_vector((10-1) downto 0):="0000000000";
+signal Matrix_R3C3 : std_logic_vector((10-1) downto 0):="0000000000";
+
+signal Matrix_Buf_Cnt	 : integer range 0 to 639:=0;
+signal Matrix_Buf_Length_Max : integer range 0 to 639:=639;
+
+------------------------------|
+-- End of LBP Matrix = Matrix Buffer--|
+------------------------------|
 signal shift_buf_cnt : integer range 0 to 15:=0;
 
 begin
 
 
-
+--########## Component Defination ###################################################################################--	
 VIDEO_IN2 : video_in
 		port map (
     clk_video  =>clk_video,
@@ -217,7 +246,9 @@ i2c_1 :i2c
                 sda => sda           
 			);
 
---VGA-buffer-8bit------------------------------------------------------------------------------------------------
+--########## Component Defination ###################################################################################--			
+			
+--############################################### Sobel Buffer Matrix ###############################################--
 process(rst_system, clk_video)
 begin
 if rst_system = '0' then
@@ -286,47 +317,10 @@ else
 	end if;
 end if;
 end process;
+--############################################### Sobel Buffer Matrix ###############################################--
 
--- process(rst_system, clk_video)
--- begin
--- if rst_system = '0' then
-	-- buf_vga_state <= "00";
-	-- buf_vga_Y_in_cnt <= 0;
--- else
-	-- if rising_edge(clk_video) then
-		-- if (buf_vga_en = '1' and cnt_video_hsync < 1280) then
-			-- case buf_vga_state is
-				-- when "00" => buf_vga_state <= "01";
-				-- when "01" => buf_vga_state <= "10";
-								 -- buf_vga_Y2(buf_vga_Y_in_cnt) <= data_video(7 downto 0);
-								 -- if buf_vga_Y_in_cnt = 639 then
-									 -- buf_vga_Y_in_cnt <= 0;
-								 -- else
-									 -- buf_vga_Y_in_cnt <= buf_vga_Y_in_cnt + 1;
-								 -- end if;
-				-- when "10" => buf_vga_state <= "11";
-				-- when "11" => buf_vga_state <= "00";
-								 -- buf_vga_Y2(buf_vga_Y_in_cnt) <= data_video(7 downto 0);
-								 -- if buf_vga_Y_in_cnt = 639 then
-									 -- buf_vga_Y_in_cnt <= 0;
-								 -- else
-									 -- buf_vga_Y_in_cnt <= buf_vga_Y_in_cnt + 1;
-								 -- end if;
-				-- when others => null;
-			-- end case;
-		-- else
-			
-			-- buf_vga_state <= "00";
-			-- buf_vga_Y_in_cnt <= 0;
-		-- end if;
-	-- end if;
--- end if;
--- end process;
 
---VGA-buffer-8bit------------------------------------------------------------------------------------------------
-
---int <= CONV_INTEGER(std_logic(MSB downto LSB));
---VGA-RGB-9bit----------------------------------------------------------------------------------------------------
+--############################################### Display VGA ###############################################-- 
 process(rst_system, clk_video)
 begin
 if rst_system = '0' then
@@ -401,9 +395,9 @@ elsif rising_edge(clk_video) then
 --	
 end if;
 end process;
-----VGA-RGB-9bit---------------------------------------------------------------------------------------------------
-----
---Buf-state---------------------------------------------------------------------------------------------------
+--############################################### Display VGA ###############################################--
+
+--############################################### Buffer State ###############################################--
 process(rst_system, clk_video)
 begin
 if rst_system = '0' then
@@ -415,6 +409,7 @@ if rst_system = '0' then
 	buf_sobel_cc_delay <= 0;
 	SBB_buf_en <= '0';
 	buf_data_state <= "00";
+	LBP_Data_State <= "00";
 else
 	if rising_edge(clk_video) then
 		-- if (buf_vga_en = '1' and f_video_en = '0' and cnt_video_hsync < 1290) then
@@ -424,10 +419,21 @@ else
 			else
 				buf_data_state <= buf_data_state + '1';
 			end if;
+			if LBP_Data_State = "11" then
+				LBP_Data_State <= "00";
+			else
+				LBP_Data_State <= LBP_Data_State + '1';
+			end if;
 			
 			if (cnt_video_hsync >= 0 and cnt_video_hsync < 1290 and cnt_v_sync_vga >= 0 and cnt_v_sync_vga < 480) then
 				if range_total_cnt_en = '0' then
 					if buf_data_state = "11" then
+						range_total_cnt_en <= '1';
+						SBB_buf_en <= '1';
+						SB_buf_012_en <= '1';
+						buf_sobel_cc_en <= '1';
+					end if;
+					if LBP_Data_State = "11" then
 						range_total_cnt_en <= '1';
 						SBB_buf_en <= '1';
 						SB_buf_012_en <= '1';
@@ -467,13 +473,15 @@ else
 			buf_sobel_cc_en <= '0';
 			SBB_buf_en <= '0';
 			buf_data_state <= "00";
+			LBP_Data_State <= "00"; 
 		end if;
 	end if;
 end if;
 end process;
---Buf-state---------------------------------------------------------------------------------------------------
+--############################################### Buffer State ###############################################--
 
--- -- Sobel-Buffer------------------------------------------------------------------------------------------------
+
+--############################################### Sobel Buffer ###############################################--
 -- process(rst_system, clk_video)
 -- begin
 -- if rst_system = '0' then
@@ -539,23 +547,145 @@ end process;
 	-- end if;
 -- end if;
 -- end process;
---Sobel-Buffer------------------------------------------------------------------------------------------------
+--############################################### Sobel Buffer ###############################################--
 
--- MUX 4 to 1
+
+-- --############################################### Sobel Calculate ###############################################--
 -- process(rst_system, clk_video)
+-- variable sobel_x_cc_1 : std_logic_vector(9 downto 0);
+-- variable sobel_x_cc_2 : std_logic_vector(9 downto 0);
+-- variable sobel_y_cc_1 : std_logic_vector(9 downto 0);
+-- variable sobel_y_cc_2 : std_logic_vector(9 downto 0);
 -- begin
 -- if rst_system = '0' then
 	-- SB_XSCR <= "0000000000";
 	-- SB_YSCR <= "0000000000";
+	-- SB_SUM  <= "00000000000";
 	-- SB_CRB_data <= '0';
+-- -- system reset
+	-- redata_cnt <= 0 ;
+	-- redata_en <= '0';
 -- else
 	-- if rising_edge(clk_video) then
-	-- else
+		-- if buf_sobel_cc_en = '1' then
+			-- if buf_data_state(0) = '1' then
+			-- -- if buf_data_state(0) = '0' then
+				-- sobel_x_cc_1 := SB_buf_0_data_1 + SB_buf_0_data_2 + SB_buf_0_data_2 + SB_buf_0_data_3;
+				-- sobel_x_cc_2 := SB_buf_2_data_1 + SB_buf_2_data_2 + SB_buf_2_data_2 + SB_buf_2_data_3;
+				
+				-- sobel_y_cc_1 := SB_buf_0_data_1 + SB_buf_1_data_1 + SB_buf_1_data_1 + SB_buf_2_data_1;
+				-- sobel_y_cc_2 := SB_buf_0_data_3 + SB_buf_1_data_3 + SB_buf_1_data_3 + SB_buf_2_data_3;
+	
+				-- if sobel_x_cc_1 >= sobel_x_cc_2 then
+					-- SB_XSCR <= sobel_x_cc_1 - sobel_x_cc_2;
+				-- else
+					-- SB_XSCR <= sobel_x_cc_2 - sobel_x_cc_1;
+				-- end if;
+				
+				-- if sobel_y_cc_1 >= sobel_y_cc_2 then
+					-- SB_YSCR <= sobel_y_cc_1 - sobel_y_cc_2;
+				-- else
+					-- SB_YSCR <= sobel_y_cc_2 - sobel_y_cc_1;
+				-- end if;
+			-- else
+				-- --if ((SB_XSCR > "0001100000" and SB_XSCR < "0011100000") or (SB_YSCR > "0001100000" and SB_YSCR < "0011100000")) then
+					-- -- SB_CRB_data <= '1';
+					
+-- -- sum  X_sobel  &  Y_sobel
+				-- SB_SUM <= "00000000000"+SB_XSCR+SB_YSCR;
+-- -- put SUM_sobel to SB_buf_redata(0~640)
+				-- SB_buf_redata(redata_cnt) <= SB_SUM(9 downto 2); 
+-- -- counter redata_cnt to get SB_buf_redata address
+				-- if redata_cnt < 639 then
+						-- redata_cnt <= redata_cnt + 1;
+				-- else
+					-- redata_cnt <= 0;
+				-- end if;
+			-- end if;
+		-- else
+			-- SB_XSCR <= "0000000000";
+			-- SB_YSCR <= "0000000000";
+			-- SB_CRB_data <= '0';
+-- -- when cnt_video_hsync > 1280, let redata_cnt be reset
+			-- redata_cnt <= 0;
+		-- end if;
 	-- end if;
 -- end if;
 -- end process;
--- MUX 4 to 1
---Sobel------------------------------------------------------------------------------------------------------
+-- --############################################### Sobel Calculate ###############################################--
+
+--############################################### Matrix Expression ###############################################--
+--			 Col-1   Col-2  Col-3
+--			[ R1C1 , R1C2 , R1C3 ]
+--Matrix =	[ R2C1 , R2C2 , R2C3 ]
+--			[ R3C1 , R3C2 , R3C3 ]
+--############################################### Matrix Expression ###############################################--
+
+--############################################### LBP Buffer Matrix ###############################################--
+process(rst_system, clk_video)
+begin
+if rst_system = '0' then
+	Matrix_R1C1 <= "0000000000";
+	Matrix_R2C1 <= "0000000000";
+	Matrix_R3C1 <= "0000000000";
+	
+	Matrix_R1C2 <= "0000000000";
+	Matrix_R2C2 <= "0000000000";
+	Matrix_R3C2 <= "0000000000";
+	
+	Matrix_R1C3 <= "0000000000";
+	Matrix_R2C3 <= "0000000000";
+	Matrix_R3C3 <= "0000000000";
+	Matrix_Buf_Cnt <= 0;
+
+else
+	if rising_edge(clk_video) then
+		if (buf_vga_en = '1' and cnt_video_hsync < 1280) then
+			if LBP_Data_State(0) = '0' then				
+				Matrix_R1C1 <= "00" & Matrix_Column_1(Matrix_Buf_Cnt);
+				Matrix_R2C1 <= Matrix_R1C1;
+				Matrix_R3C1 <= Matrix_R2C1;
+				
+				Matrix_R1C2 <= "00" & Matrix_Column_2(Matrix_Buf_Cnt);
+				Matrix_R2C2 <= Matrix_R1C2;
+				Matrix_R3C2 <= Matrix_R2C2;
+				
+				Matrix_R1C3 <= "00" & Matrix_Column_3(Matrix_Buf_Cnt);
+				Matrix_R2C3 <= Matrix_R1C3;
+				Matrix_R3C3 <= Matrix_R2C3;
+				
+			else	
+
+				Matrix_Column_1(Matrix_Buf_Cnt) <= data_video(7 downto 0);
+				Matrix_Column_2(Matrix_Buf_Cnt) <= Matrix_R3C1(7 downto 0);
+				Matrix_Column_3(Matrix_Buf_Cnt) <= Matrix_R3C2(7 downto 0);
+				
+				if Matrix_Buf_Cnt = Matrix_Buf_Length_Max then
+					Matrix_Buf_Cnt <= 0;
+				else
+					Matrix_Buf_Cnt <= Matrix_Buf_Cnt + 1 ;
+				end if;				
+			end if;
+		else
+			Matrix_R1C1 <= "0000000000";
+			Matrix_R2C1 <= "0000000000";
+			Matrix_R3C1 <= "0000000000";
+			
+			Matrix_R1C2 <= "0000000000";
+			Matrix_R2C2 <= "0000000000";
+			Matrix_R3C2 <= "0000000000";
+			
+			Matrix_R1C3 <= "0000000000";
+			Matrix_R2C3 <= "0000000000";
+			Matrix_R3C3 <= "0000000000";
+			Matrix_Buf_Cnt <= 0;
+		end if;
+	end if;
+end if;
+end process;
+--############################################### LBP Buffer Matrix ###############################################--
+
+--############################################### Sobel Calculate ###############################################--
 process(rst_system, clk_video)
 variable sobel_x_cc_1 : std_logic_vector(9 downto 0);
 variable sobel_x_cc_2 : std_logic_vector(9 downto 0);
@@ -566,55 +696,19 @@ if rst_system = '0' then
 	SB_XSCR <= "0000000000";
 	SB_YSCR <= "0000000000";
 	SB_SUM  <= "00000000000";
-	SB_CRB_data <= '0';
 -- system reset
 	redata_cnt <= 0 ;
-	redata_en <= '0';
 else
 	if rising_edge(clk_video) then
 		if buf_sobel_cc_en = '1' then
-			if buf_data_state(0) = '1' then
+			if LBP_Data_State(0) = '1' then
 			-- if buf_data_state(0) = '0' then
-				sobel_x_cc_1 := SB_buf_0_data_1 + SB_buf_0_data_2 + SB_buf_0_data_2 + SB_buf_0_data_3;
+				sobel_x_cc_1 := Matrix_R1C3 + Matrix_R2C3 + Matrix_R2C3 + Matrix_R3C3;
+				sobel_x_cc_2 := Matrix_R1C1 + Matrix_R2C1 + Matrix_R2C1 + Matrix_R3C1;
 				
-				sobel_x_cc_2 := SB_buf_2_data_1 + SB_buf_2_data_2 + SB_buf_2_data_2 + SB_buf_2_data_3;
-				
-				sobel_y_cc_1 := SB_buf_0_data_1 + SB_buf_1_data_1 + SB_buf_1_data_1 + SB_buf_2_data_1;
-				
-				sobel_y_cc_2 := SB_buf_0_data_3 + SB_buf_1_data_3 + SB_buf_1_data_3 + SB_buf_2_data_3;
-				
-				-- if DebugMux = "00" then
-					-- buf_vga_Y2(buf_vga_Y_in_cnt) <= sobel_x_cc_1(7 downto 0);					
-					-- if buf_vga_Y_in_cnt = 639 then
-						-- buf_vga_Y_in_cnt <= 0;
-					-- else
-						-- buf_vga_Y_in_cnt <= buf_vga_Y_in_cnt + 1;
-					-- end if;
-				-- elsif DebugMux = "01" then
-					-- buf_vga_Y2(buf_vga_Y_in_cnt) <= sobel_x_cc_2(7 downto 0);					
-					-- if buf_vga_Y_in_cnt = 639 then
-						-- buf_vga_Y_in_cnt <= 0;
-					-- else
-						-- buf_vga_Y_in_cnt <= buf_vga_Y_in_cnt + 1;
-					-- end if;
-				-- elsif DebugMux = "10" then
-					-- buf_vga_Y2(buf_vga_Y_in_cnt) <= sobel_y_cc_1(7 downto 0);					
-					-- if buf_vga_Y_in_cnt = 639 then
-						-- buf_vga_Y_in_cnt <= 0;
-					-- else
-						-- buf_vga_Y_in_cnt <= buf_vga_Y_in_cnt + 1;
-					-- end if;
-				-- else
-					-- buf_vga_Y2(buf_vga_Y_in_cnt) <= sobel_y_cc_2(7 downto 0);					
-					-- if buf_vga_Y_in_cnt = 639 then
-						-- buf_vga_Y_in_cnt <= 0;
-					-- else
-						-- buf_vga_Y_in_cnt <= buf_vga_Y_in_cnt + 1;
-					-- end if;
-				-- end if;
-				
-				
-				
+				sobel_y_cc_1 := Matrix_R1C3 + Matrix_R1C2 + Matrix_R1C2 + Matrix_R1C1;
+				sobel_y_cc_2 := Matrix_R3C3 + Matrix_R3C2 + Matrix_R3C2 + Matrix_R3C1;
+	
 				if sobel_x_cc_1 >= sobel_x_cc_2 then
 					SB_XSCR <= sobel_x_cc_1 - sobel_x_cc_2;
 				else
@@ -627,16 +721,13 @@ else
 					SB_YSCR <= sobel_y_cc_2 - sobel_y_cc_1;
 				end if;
 			else
-				--if ((SB_XSCR > "0001100000" and SB_XSCR < "0011100000") or (SB_YSCR > "0001100000" and SB_YSCR < "0011100000")) then
-					-- SB_CRB_data <= '1';
-					
 -- sum  X_sobel  &  Y_sobel
 				SB_SUM <= "00000000000"+SB_XSCR+SB_YSCR;
 -- put SUM_sobel to SB_buf_redata(0~640)
-				SB_buf_redata(redata_cnt) <= SB_SUM(9 downto 2);
+				SB_buf_redata(redata_cnt) <= SB_SUM(9 downto 2); 
 -- counter redata_cnt to get SB_buf_redata address
 				if redata_cnt < 639 then
-						redata_cnt <= redata_cnt + 1;
+					redata_cnt <= redata_cnt + 1;
 				else
 					redata_cnt <= 0;
 				end if;
@@ -651,36 +742,7 @@ else
 	end if;
 end if;
 end process;
---Sobel------------------------------------------------------------------------------------------------------
+--############################################### Sobel Calculate ###############################################--
 
-----
--- process(rst_system, clk_video)
--- begin
-	-- if rst_system = '0' then
-		-- DebugOut <= (others => '0');
-		-- show_frame_Icnt <= 0;
-		-- available_frame_en <= '0';
-		-- DebugPulse <= '0';
-	-- elsif rising_edge(clk_video) then
-		-- if show_frame_en = '1' then
-			-- if show_frame_Icnt > 29999 then
-				-- show_frame_Icnt <= 0;
-				-- available_frame_en <= '1';
-				-- DebugOut <= (others => '0');
-				-- DebugPulse <= not DebugPulse;
-			-- else
-				-- -- if show_frame_Icnt = 150 then
-					-- -- DebugPulse <= not DebugPulse;
-				-- -- else
-					-- -- DebugPulse <= DebugPulse;
-				-- -- end if;	
-				-- DebugPulse <= DebugPulse;
-				-- show_frame_Icnt <= show_frame_Icnt + 1;						
-				-- DebugOut <= available_frame(show_frame_Icnt)(7 downto 0);
-			-- end if;			
-		-- else			
-			-- DebugOut <= (others => '0');
-		-- end if;
-	-- end if;
--- end process;
+
 end architecture_LTP_Implement;
