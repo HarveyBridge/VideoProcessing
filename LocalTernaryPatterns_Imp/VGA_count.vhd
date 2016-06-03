@@ -45,7 +45,6 @@ else
 					if cnt_v_sync_vga = 524 then
 						cnt_v_sync_vga <= 0;
 						black_vga_en <= '0';
-
 					else
 						cnt_v_sync_vga <= cnt_v_sync_vga + 1;
 						black_vga_en <= not black_vga_en;

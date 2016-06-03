@@ -8,42 +8,24 @@ use IEEE.std_logic_unsigned.all;
 
 entity LocalTernaryPatterns_Imp is
 port (
-                --clk : in std_logic;
-				--avid: in std_logic;
-                --fid : in std_logic;
 				scl : out std_logic;
 				sda : inout std_logic;
-			    --intreq: in std_logic;
-                --alarm: out std_logic;--buzzer
-			   data_video : in std_logic_vector(7 downto 0);
-			   clk_video : in std_logic;
-			  --Video-port----------------------------------------------------------------------------------------
-				--hsync: in std_logic;-- to 
-                --vsync: in std_logic;
-			  --VGA-port----------------------------------------------------------------------------------------
+			    data_video : in std_logic_vector(7 downto 0);
+			    clk_video : in std_logic;
+			 
 			    h_sync_vga : out std_logic;
 				v_sync_vga : out std_logic;
 				r_vga : out  STD_LOGIC_vector(2 downto 0);
 				g_vga : out  STD_LOGIC_vector(2 downto 0);
 				b_vga : out  STD_LOGIC_vector(2 downto 0);
-				
-			  --VGA-port----------------------------------------------------------------------------------------
-                --ledarray_D : out  STD_LOGIC_vector(7 downto 0);
-                --ledarray_U : out  STD_LOGIC_vector(7 downto 0);
-               --fpga_to_arduino----------------------------------------------------------------------------------------      
+
                 -- Debug
 					-- DebugOut : out  STD_LOGIC_vector(7 downto 0);
 					-- DebugPulse : inout  STD_LOGIC;
 					DebugMux	:in std_logic_vector(3 downto 0);
+					ImageSelect	:in std_logic;
 					test : buffer std_logic;
-				--DebugLEDOut : inout  STD_LOGIC_vector(7 downto 0);
-				-- Test Zed pin
-				--JB	: out std_logic_vector(3 downto 0);
-				--JC	: out std_logic_vector(3 downto 0);
-				--JD	: out std_logic_vector(3 downto 0);
-				--JE	: out std_logic_vector(7 downto 0);
-                --led_text : out std_logic;
-                ---
+
                 rst_system : in  STD_LOGIC
 );
 end LocalTernaryPatterns_Imp;
@@ -218,6 +200,7 @@ signal Matrix_Buf_Length_Max : integer range 0 to 639:=639;
 signal R2C2_Encode 				: std_logic_vector(7 downto 0);
 signal R2C2_Encode_Threshold	: std_logic_vector(7 downto 0):="00001111";
 signal R2C2_Encode_Bit			: std_logic_vector(7 downto 0);
+signal R2C2_Encode_Bit2			: std_logic_vector(7 downto 0);
 signal LTP_Value				: Matrix_Buf;
 signal LTP_Cnt					: integer range 0 to 639:=0;
 ------------------|
@@ -287,24 +270,10 @@ else
 				SB_buf_2_data_3 <= "00" & SB_buf_2(SB_buf_cnt);
 				SB_buf_2_data_2 <= SB_buf_2_data_3;
 				SB_buf_2_data_1 <= SB_buf_2_data_2;
-				
-				-- if shift_buf_cnt = 2 then
-					-- buf_vga_Y2(buf_vga_Y_in_cnt) <= buf_vga_Y2(buf_vga_Y_in_cnt-2);
-					-- shift_buf_cnt <= 0 ;
-				-- end if;
 			else	
 				SB_buf_0(SB_buf_cnt) <= SB_buf_1_data_3(7 downto 0);
 				SB_buf_1(SB_buf_cnt) <= SB_buf_2_data_3(7 downto 0);
 				SB_buf_2(SB_buf_cnt) <= data_video;
-				----------------------------------------------------------------------
-					-- buf_vga_Y2(buf_vga_Y_in_cnt) <= data_video(7 downto 0);
-					-- if buf_vga_Y_in_cnt = 639 then
-						-- buf_vga_Y_in_cnt <= 0;
-					-- else
-						-- buf_vga_Y_in_cnt <= buf_vga_Y_in_cnt + 1;
-					-- end if;
-				-- shift_buf_cnt <= shift_buf_cnt + 1;
-				----------------------------------------------------------------------
 				if SB_buf_cnt = SB_buf_cnt_max then
 					SB_buf_cnt <= 0;
 				else
@@ -495,75 +464,6 @@ else
 end if;
 end process;
 --############################################### Buffer State ###############################################--
-
-
---############################################### Sobel Buffer ###############################################--
--- process(rst_system, clk_video)
--- begin
--- if rst_system = '0' then
-	-- SB_buf_0_data_1 <= "0000000000";
-	-- SB_buf_0_data_2 <= "0000000000";
-	-- SB_buf_0_data_3 <= "0000000000";
-	-- SB_buf_1_data_1 <= "0000000000";
-	-- SB_buf_1_data_2 <= "0000000000";
-	-- SB_buf_1_data_3 <= "0000000000";
-	-- SB_buf_2_data_1 <= "0000000000";
-	-- SB_buf_2_data_2 <= "0000000000";
-	-- SB_buf_2_data_3 <= "0000000000";
-	-- SB_buf_cnt <= 0;
-	-- shift_buf_cnt <= 0;
--- else
-	-- if rising_edge(clk_video) then
-		-- if SB_buf_012_en = '1' then
-			-- if buf_data_state(0) = '0' then
-				-- SB_buf_0_data_3 <= "00" & SB_buf_0(SB_buf_cnt);
-				-- SB_buf_0_data_2 <= SB_buf_0_data_3;
-				-- SB_buf_0_data_1 <= SB_buf_0_data_2;
-				-- SB_buf_1_data_3 <= "00" & SB_buf_1(SB_buf_cnt);
-				-- SB_buf_1_data_2 <= SB_buf_1_data_3;
-				-- SB_buf_1_data_1 <= SB_buf_1_data_2;
-				-- SB_buf_2_data_3 <= "00" & SB_buf_2(SB_buf_cnt);
-				-- SB_buf_2_data_2 <= SB_buf_2_data_3;
-				-- SB_buf_2_data_1 <= SB_buf_2_data_2;
-				
-				-- if shift_buf_cnt = 1 then
-					-- SB_buf_2(SB_buf_cnt) <= SB_buf_2(SB_buf_cnt-1);
-					-- shift_buf_cnt <= 0 ;
-				-- end if;
-			-- else	
-				-- SB_buf_0(SB_buf_cnt) <= SB_buf_1_data_3(7 downto 0);
-				-- SB_buf_1(SB_buf_cnt) <= SB_buf_2_data_3(7 downto 0);
-				-- SB_buf_2(SB_buf_cnt) <= data_video;
-					-- -- buf_vga_Y2(buf_vga_Y_in_cnt) <= data_video(7 downto 0);
-					-- -- if buf_vga_Y_in_cnt = 639 then
-						-- -- buf_vga_Y_in_cnt <= 0;
-					-- -- else
-						-- -- buf_vga_Y_in_cnt <= buf_vga_Y_in_cnt + 1;
-					-- -- end if;
-				-- shift_buf_cnt <= shift_buf_cnt + 1;
-				
-				-- if SB_buf_cnt = SB_buf_cnt_max then
-					-- SB_buf_cnt <= SB_buf_cnt_max;
-				-- else
-					-- SB_buf_cnt <= SB_buf_cnt + 1;
-				-- end if;	
-			-- end if;
-		-- else
-			-- SB_buf_0_data_1 <= "0000000000";
-			-- SB_buf_0_data_2 <= "0000000000";
-			-- SB_buf_0_data_3 <= "0000000000";
-			-- SB_buf_1_data_1 <= "0000000000";
-			-- SB_buf_1_data_2 <= "0000000000";
-			-- SB_buf_1_data_3 <= "0000000000";
-			-- SB_buf_2_data_1 <= "0000000000";
-			-- SB_buf_2_data_2 <= "0000000000";
-			-- SB_buf_2_data_3 <= "0000000000";
-			-- SB_buf_cnt <= 0;
-		-- end if;
-	-- end if;
--- end if;
--- end process;
---############################################### Sobel Buffer ###############################################--
 
 
 -- --############################################### Sobel Calculate ###############################################--
@@ -776,6 +676,7 @@ begin
 if rst_system = '0' then
 	R2C2_Encode <= (others =>'0');
 	R2C2_Encode_Bit <= (others =>'0');
+	R2C2_Encode_Bit2<= (others =>'0');
 	LTP_Cnt <= 0;
 else
 	if rising_edge(clk_video) then
@@ -791,49 +692,97 @@ else
 				R2C2_Encode_Reg_2 := Matrix_R2C3 - Matrix_R2C2;
 				R2C2_Encode_Reg_1 := Matrix_R1C3 - Matrix_R2C2;
 				R2C2_Encode_Reg_0 := Matrix_R1C2 - Matrix_R2C2;
-				
+				  
 				if R2C2_Encode_Reg_7 > R2C2_Encode_Threshold then
 					R2C2_Encode_Bit(7) <= '1';
+					R2C2_Encode_Bit2(7) <= '0';
+				elsif R2C2_Encode_Reg_7 < R2C2_Encode_Threshold then
+					R2C2_Encode_Bit(7) <= '0';
+					R2C2_Encode_Bit2(7) <= '1';
 				else
 					R2C2_Encode_Bit(7) <= '0';
+					R2C2_Encode_Bit2(7) <= '0';
 				end if;
+				
 				if R2C2_Encode_Reg_6 > R2C2_Encode_Threshold then
 					R2C2_Encode_Bit(6) <= '1';
+					R2C2_Encode_Bit2(6) <= '0';
+				elsif R2C2_Encode_Reg_6 < R2C2_Encode_Threshold then
+					R2C2_Encode_Bit(6) <= '0';
+					R2C2_Encode_Bit2(6) <= '1';
 				else
 					R2C2_Encode_Bit(6) <= '0';
+					R2C2_Encode_Bit2(6) <= '0';
 				end if;
+				
 				if R2C2_Encode_Reg_5 > R2C2_Encode_Threshold then
 					R2C2_Encode_Bit(5) <= '1';
+					R2C2_Encode_Bit2(5) <= '0';
+				elsif R2C2_Encode_Reg_5 < R2C2_Encode_Threshold then
+					R2C2_Encode_Bit(5) <= '0';
+					R2C2_Encode_Bit2(5) <= '1';
 				else
 					R2C2_Encode_Bit(5) <= '0';
-				end if;
+					R2C2_Encode_Bit2(5) <= '0';
+				end if;		
 				if R2C2_Encode_Reg_4 > R2C2_Encode_Threshold then
 					R2C2_Encode_Bit(4) <= '1';
+					R2C2_Encode_Bit2(4) <= '0';
+				elsif R2C2_Encode_Reg_4 < R2C2_Encode_Threshold then
+					R2C2_Encode_Bit(4) <= '0';
+					R2C2_Encode_Bit2(4) <= '1';
 				else
 					R2C2_Encode_Bit(4) <= '0';
-				end if;				
+					R2C2_Encode_Bit2(4) <= '0';
+				end if;
 				if R2C2_Encode_Reg_3 > R2C2_Encode_Threshold then
 					R2C2_Encode_Bit(3) <= '1';
+					R2C2_Encode_Bit2(3) <= '0';
+				elsif R2C2_Encode_Reg_3 < R2C2_Encode_Threshold then
+					R2C2_Encode_Bit(3) <= '0';
+					R2C2_Encode_Bit2(3) <= '1';
 				else
 					R2C2_Encode_Bit(3) <= '0';
+					R2C2_Encode_Bit2(3) <= '0';
 				end if;
 				if R2C2_Encode_Reg_2 > R2C2_Encode_Threshold then
 					R2C2_Encode_Bit(2) <= '1';
+					R2C2_Encode_Bit2(2) <= '0';
+				elsif R2C2_Encode_Reg_2 < R2C2_Encode_Threshold then
+					R2C2_Encode_Bit(2) <= '0';
+					R2C2_Encode_Bit2(2) <= '1';
 				else
 					R2C2_Encode_Bit(2) <= '0';
+					R2C2_Encode_Bit2(2) <= '0';
 				end if;
 				if R2C2_Encode_Reg_1 > R2C2_Encode_Threshold then
 					R2C2_Encode_Bit(1) <= '1';
+					R2C2_Encode_Bit2(1) <= '0';
+				elsif R2C2_Encode_Reg_1 < R2C2_Encode_Threshold then
+					R2C2_Encode_Bit(1) <= '0';
+					R2C2_Encode_Bit2(1) <= '1';
 				else
 					R2C2_Encode_Bit(1) <= '0';
+					R2C2_Encode_Bit2(1) <= '0';
 				end if;
 				if R2C2_Encode_Reg_0 > R2C2_Encode_Threshold then
 					R2C2_Encode_Bit(0) <= '1';
+					R2C2_Encode_Bit2(0) <= '0';
+				elsif R2C2_Encode_Reg_0 < R2C2_Encode_Threshold then
+					R2C2_Encode_Bit(0) <= '0';
+					R2C2_Encode_Bit2(0) <= '1';
 				else
 					R2C2_Encode_Bit(0) <= '0';
-				end if;				
+					R2C2_Encode_Bit2(0) <= '0';
+				end if;
+				
 			else
-				R2C2_Encode <= R2C2_Encode_Bit;
+				if ImageSelect = '0' then
+					R2C2_Encode <= R2C2_Encode_Bit;
+				else
+					R2C2_Encode <= R2C2_Encode_Bit2;
+				end if;
+				
 				LTP_Value(LTP_Cnt) <= R2C2_Encode;
 				if LTP_Cnt < 639 then
 					LTP_Cnt <= LTP_Cnt + 1;
