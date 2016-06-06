@@ -197,15 +197,20 @@ signal Matrix_Buf_Length_Max : integer range 0 to 639:=639;
 ------------------|
 --LTP Calculate --|
 ------------------|
+type Analyze_Buf is array (integer range 0 to 255) of std_logic_vector ((16-1) downto 0);
 signal R2C2_Encode 				: std_logic_vector(7 downto 0);
 signal R2C2_Encode_Threshold	: std_logic_vector(7 downto 0):="00001111";
 signal R2C2_Encode_Bit			: std_logic_vector(7 downto 0);
 signal R2C2_Encode_Bit2			: std_logic_vector(7 downto 0);
 signal LTP_Value				: Matrix_Buf;
+signal LTP_Analyze				: Analyze_Buf;
+signal LTP_Analyze_Cnt			: integer range 0 to 65535:=0;
 signal LTP_Cnt					: integer range 0 to 639:=0;
 ------------------|
 --LTP Calculate --|
 ------------------|
+
+
 begin
 
 
@@ -320,59 +325,199 @@ elsif rising_edge(clk_video) then
 			
 			
 			-- -- ((f_video_en = '0' and black_vga_en = '0') or (f_video_en = '1' and black_vga_en = '1'))
-		if ( cnt_h_sync_vga > 1 and cnt_h_sync_vga < 640 and cnt_v_sync_vga > 1 and cnt_v_sync_vga < 480)   then		
-
--- mark this to show full image
---			if  (f_video_en = '1' and black_vga_en = '1') then
-
+		if cnt_v_sync_vga > 1 and cnt_v_sync_vga < 480 then
+			if cnt_h_sync_vga > 1 and cnt_h_sync_vga < 640 then		
+				buf_vga_Y_out_cnt <= buf_vga_Y_out_cnt - 1;	
+				if(cnt_v_sync_vga > 1 and cnt_v_sync_vga < 15) then
+					if((cnt_h_sync_vga = 50)or(cnt_h_sync_vga = 100)or(cnt_h_sync_vga = 150)or(cnt_h_sync_vga = 200)or(cnt_h_sync_vga = 250)or(cnt_h_sync_vga = 300)or(cnt_h_sync_vga = 350)or(cnt_h_sync_vga = 400)or(cnt_h_sync_vga = 450)or(cnt_h_sync_vga = 500)or(cnt_h_sync_vga = 550)or(cnt_h_sync_vga = 600)) then										
+						if(cnt_h_sync_vga = 50)then
+							r_vga <= "111";
+							g_vga <= "000";
+							b_vga <= "000";
+						elsif(cnt_h_sync_vga = 100)then
+							r_vga <= "000";
+							g_vga <= "111";
+							b_vga <= "111";
+						elsif(cnt_h_sync_vga = 150)then
+							r_vga <= "111";
+							g_vga <= "000";
+							b_vga <= "000";
+						elsif(cnt_h_sync_vga = 200)then
+							r_vga <= "000";
+							g_vga <= "111";
+							b_vga <= "111";
+						elsif(cnt_h_sync_vga = 250)then
+							r_vga <= "111";
+							g_vga <= "000";
+							b_vga <= "000";
+						elsif(cnt_h_sync_vga = 300)then
+							r_vga <= "000";
+							g_vga <= "111";
+							b_vga <= "111";
+						elsif(cnt_h_sync_vga = 350)then
+							r_vga <= "111";
+							g_vga <= "000";
+							b_vga <= "000";
+						elsif(cnt_h_sync_vga = 400)then
+							r_vga <= "000";
+							g_vga <= "111";
+							b_vga <= "111";
+						elsif(cnt_h_sync_vga = 450)then
+							r_vga <= "111";
+							g_vga <= "000";
+							b_vga <= "000";
+						elsif(cnt_h_sync_vga = 500)then
+							r_vga <= "000";
+							g_vga <= "111";
+							b_vga <= "111";
+						elsif(cnt_h_sync_vga = 550)then
+							r_vga <= "111";
+							g_vga <= "000";
+							b_vga <= "000";
+						else -- 600
+							r_vga <= "000";
+							g_vga <= "111";
+							b_vga <= "111";
+						end if;
+					else
+						r_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+						g_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+						b_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+					end if;				
+				else				
+				-- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ Catch Special Range $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ --
+					if((cnt_h_sync_vga > 100 and cnt_h_sync_vga < boundary_edge_H)and(cnt_v_sync_vga > 100 and cnt_v_sync_vga < boundary_edge_V) )then
+						if((cnt_v_sync_vga > 100 and cnt_v_sync_vga < 102)or(cnt_v_sync_vga > (boundary_edge_V-2) and cnt_v_sync_vga < boundary_edge_V))then
+							r_vga <= "111";
+							g_vga <= "000";
+							b_vga <= "000";
+						else					
+							if((cnt_h_sync_vga > 100 and cnt_h_sync_vga < 102)or(cnt_h_sync_vga > (boundary_edge_H-2) and cnt_h_sync_vga < boundary_edge_H))then					
+								r_vga <= "000";
+								g_vga <= "111";							
+								b_vga <= "000";
+							else
+								-- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ Inner Special Range $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ --
+								r_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+								g_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+								b_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+								
+									
+								if(LTP_Value(buf_vga_Y_out_cnt)(7 downto 0) = x"01") then
+									LTP_Analyze(0) <= LTP_Analyze(0) + '1';
+								elsif(LTP_Value(buf_vga_Y_out_cnt)(7 downto 0) = x"02") then 
+									LTP_Analyze(1) <= LTP_Analyze(1) + '1';
+								elsif(LTP_Value(buf_vga_Y_out_cnt)(7 downto 0) = x"04") then 
+									LTP_Analyze(2) <= LTP_Analyze(2) + '1';
+								elsif(LTP_Value(buf_vga_Y_out_cnt)(7 downto 0) = x"08") then 
+									LTP_Analyze(3) <= LTP_Analyze(3) + '1';
+								elsif(LTP_Value(buf_vga_Y_out_cnt)(7 downto 0) = x"10") then 
+									LTP_Analyze(4) <= LTP_Analyze(4) + '1';
+								elsif(LTP_Value(buf_vga_Y_out_cnt)(7 downto 0) = x"20") then 
+									LTP_Analyze(5) <= LTP_Analyze(5) + '1';
+								elsif(LTP_Value(buf_vga_Y_out_cnt)(7 downto 0) = x"40") then 
+									LTP_Analyze(6) <= LTP_Analyze(6) + '1';
+								elsif(LTP_Value(buf_vga_Y_out_cnt)(7 downto 0) = x"80") then 
+									LTP_Analyze(7) <= LTP_Analyze(7) + '1';
+								end if;
+								-- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ Inner Special Range $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ --
+							end if;
+						end if;
+					else					
+						if((cnt_v_sync_vga > 300 and cnt_v_sync_vga < 480)) then
+							if((cnt_v_sync_vga > 310 and cnt_v_sync_vga < 315))then
+								if(cnt_h_sync_vga > 0 and cnt_h_sync_vga < CONV_INTEGER(LTP_Analyze(0)(9 downto 0)))then					
+									r_vga <= "111";
+									g_vga <= "000";							
+									b_vga <= "000";
+								else
+									r_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+									g_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+									b_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+								end if;
+							else					
+								if((cnt_v_sync_vga > 330 and cnt_v_sync_vga < 335))then				
+									if(cnt_h_sync_vga > 0 and cnt_h_sync_vga < CONV_INTEGER(LTP_Analyze(1)(9 downto 0)))then					
+										r_vga <= "000";
+										g_vga <= "111";							
+										b_vga <= "000";
+									else
+										r_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+										g_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+										b_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+									end if;
+								else
+									if((cnt_v_sync_vga > 350 and cnt_v_sync_vga < 355))then
+										if(cnt_h_sync_vga > 0 and cnt_h_sync_vga < CONV_INTEGER(LTP_Analyze(2)(9 downto 0)))then					
+											r_vga <= "111";
+											g_vga <= "000";							
+											b_vga <= "000";
+										else
+											r_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+											g_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+											b_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+										end if;
+									else
+										if((cnt_v_sync_vga > 370 and cnt_v_sync_vga < 375))then
+											if(cnt_h_sync_vga > 0 and cnt_h_sync_vga < CONV_INTEGER(LTP_Analyze(3)(9 downto 0)))then					
+												r_vga <= "111";
+												g_vga <= "111";							
+												b_vga <= "000";
+											else
+												r_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+												g_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+												b_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+											end if;
+										else
+											r_vga <= "000";
+											g_vga <= "111";							
+											b_vga <= "111";
+										end if;
+									end if;
+								end if;
+							end if;
+						else
+							r_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+							g_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+							b_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+						end if;				
+					end if;
+				end if;
+				-- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ Catch Special Range $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ --
+-- mark this to show full image  ===> Flash Image !!
+			-- if  (f_video_en = '1' and black_vga_en = '1') then
+				-- buf_vga_Y_out_cnt <= buf_vga_Y_out_cnt - 1;	
+				-- r_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+				-- g_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+				-- b_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+			-- else
+				-- r_vga <= "000";
+				-- g_vga <= "000";
+				-- b_vga <= "000";
+			-- end if;
 -- count address and show sobel
 			-- buf_vga_Y_out_cnt <= buf_vga_Y_out_cnt - 1;	
 			-- r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
 			-- g_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
-			-- b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
-			
-			buf_vga_Y_out_cnt <= buf_vga_Y_out_cnt - 1;	
-			r_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
-			g_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
-			b_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
-			
-				-- if SB_CRB_data = '1' then
-					-- r_vga <= "111";
-					-- g_vga <= "000";
-					-- b_vga <= "000";
-				-- else
-					-- r_vga <= "000";
-					-- g_vga <= "000";
-					-- b_vga <= "000";
-				-- end if;
-			-- else
-				-- if SB_CRB_data = '1' then
-					-- r_vga <= "111";
-					-- g_vga <= "111";
-					-- b_vga <= "111";
-				-- else
-					-- r_vga <= "000";
-					-- g_vga <= "000";
-					-- b_vga <= "000";
-				-- end if;
---			end if;
-		-- if (((f_video_en = '0' and black_vga_en = '0') or (f_video_en = '1' and black_vga_en = '1')) and cnt_h_sync_vga > 1 and cnt_h_sync_vga < 640 and cnt_v_sync_vga > 1 and cnt_v_sync_vga < 480)   then
-				-- if SB_CRB_data = '1' then
-					-- r_vga <= "111";
-					-- g_vga <= "111";
-					-- b_vga <= "111";
-				-- else
-					-- r_vga <= "000";
-					-- g_vga <= "000";
-					-- b_vga <= "000";
-				-- end if;
-		
-			
+			-- b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);	
+			else
+				r_vga <= "000";
+				g_vga <= "000";
+				b_vga <= "000";
+				buf_vga_Y_out_cnt <= 639;
+			end if;
 		else
+			LTP_Analyze(0) <= (others=>'0');
+			LTP_Analyze(1) <= (others=>'0');
+			LTP_Analyze(2) <= (others=>'0');
+			LTP_Analyze(3) <= (others=>'0');
+			LTP_Analyze(4) <= (others=>'0');
+			LTP_Analyze(5) <= (others=>'0');
+			LTP_Analyze(6) <= (others=>'0');
+			LTP_Analyze(7) <= (others=>'0');		
 			r_vga <= "000";
 			g_vga <= "000";
 			b_vga <= "000";
-			buf_vga_Y_out_cnt <= 639;
 			--available_frame_cnt <= 300;
 			--available_frame_en <= '0';
 			--available_frame_value <= 0;
