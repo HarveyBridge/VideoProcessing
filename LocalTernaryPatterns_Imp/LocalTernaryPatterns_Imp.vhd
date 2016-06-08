@@ -64,20 +64,6 @@ signal buf_vga_Y_out_cnt : integer range 0 to 639:=639;
 
 
 
-
--- type SquareArray is ARRAY (integer range 0 to 300) of std_logic_vector(7 downto 0);
--- signal available_frame	: SquareArray;
--- signal available_frame_cnt : integer range 0 to 32767:=0;
-
--- signal available_frame_en : std_logic;
--- signal available_frame_value : integer range 0 to 7:=0;
--- signal available_frame_buf : std_logic_vector(2 downto 0);
-
--- signal show_frame_en : std_logic;
--- signal show_frame_Icnt : integer range 0 to 32767:=0;
---signal buf_vga_CbYCr_state : std_logic:='0';
-
---VGA-8bit-------------------------------------------------------------------------------------------------------
 --########## Component Defination ###################################################################################--	
 component video_in
 	Port ( 
@@ -206,13 +192,36 @@ signal LTP_Value				: Matrix_Buf;
 signal LTP_Analyze				: Analyze_Buf;
 signal LTP_Analyze_Cnt			: integer range 0 to 65535:=0;
 signal LTP_Cnt					: integer range 0 to 639:=0;
+signal LTP_Div_Character		: std_logic_vector(15 downto 0);
+signal LTP_Character			: std_logic_vector(7 downto 0);
 ------------------|
 --LTP Calculate --|
 ------------------|
+------------------------------------|
+--Sobel_Cal Matrix = Matrix Buffer--|
+------------------------------------|
+signal Sobel_Cal_Column_1 : Matrix_Buf;
+signal Sobel_Cal_R1C1 : std_logic_vector((10-1) downto 0):="0000000000";
+signal Sobel_Cal_R2C1 : std_logic_vector((10-1) downto 0):="0000000000";
+signal Sobel_Cal_R3C1 : std_logic_vector((10-1) downto 0):="0000000000";
+
+signal Sobel_Cal_Column_2 : Matrix_Buf;
+signal Sobel_Cal_R1C2 : std_logic_vector((10-1) downto 0):="0000000000";
+signal Sobel_Cal_R2C2 : std_logic_vector((10-1) downto 0):="0000000000";
+signal Sobel_Cal_R3C2 : std_logic_vector((10-1) downto 0):="0000000000";
+
+signal Sobel_Cal_Column_3 : Matrix_Buf;
+signal Sobel_Cal_R1C3 : std_logic_vector((10-1) downto 0):="0000000000";
+signal Sobel_Cal_R2C3 : std_logic_vector((10-1) downto 0):="0000000000";
+signal Sobel_Cal_R3C3 : std_logic_vector((10-1) downto 0):="0000000000";
+
+signal Sobel_Cal_Buf_Cnt	 : integer range 0 to 639:=0;
+signal Sobel_Cal_Buf_Length_Max : integer range 0 to 639:=639;
 signal Sobel_Cal_en				: std_logic;
-
+------------------------------------|
+--Sobel_Cal Matrix = Matrix Buffer--|
+------------------------------------|
 begin
-
 
 --########## Component Defination ###################################################################################--	
 VIDEO_IN2 : video_in
@@ -328,17 +337,164 @@ elsif rising_edge(clk_video) then
 		if cnt_v_sync_vga > 1 and cnt_v_sync_vga < 480 then
 			if cnt_h_sync_vga > 1 and cnt_h_sync_vga < 640 then		
 				buf_vga_Y_out_cnt <= buf_vga_Y_out_cnt - 1;	
-				
-				if cnt_h_sync_vga > 280 and cnt_h_sync_vga < 640 then
-					if( ( cnt_v_sync_vga > (480 - CONV_INTEGER(LTP_Analyze(cnt_h_sync_vga-280)(7 downto 0)))) and cnt_v_sync_vga < 480 )then					
+				if cnt_h_sync_vga > 280 and cnt_h_sync_vga < 536 then
+					-- if(cnt_v_sync_vga > 1 and cnt_v_sync_vga < 5)then
+						-- if cnt_h_sync_vga = 291 then
+							-- r_vga <= "111";
+							-- g_vga <= "000";							
+							-- b_vga <= "000";
+						-- elsif cnt_h_sync_vga = 301 then
+							-- r_vga <= "000";
+							-- g_vga <= "111";							
+							-- b_vga <= "000";
+						-- elsif cnt_h_sync_vga = 311 then
+							-- r_vga <= "000";
+							-- g_vga <= "000";							
+							-- b_vga <= "111";
+						-- elsif cnt_h_sync_vga = 321 then
+							-- r_vga <= "111";
+							-- g_vga <= "000";							
+							-- b_vga <= "000";
+						-- elsif cnt_h_sync_vga = 331 then
+							-- r_vga <= "000";
+							-- g_vga <= "111";							
+							-- b_vga <= "000";
+						-- elsif cnt_h_sync_vga = 341 then
+							-- r_vga <= "000";
+							-- g_vga <= "000";							
+							-- b_vga <= "111";
+						-- elsif cnt_h_sync_vga = 351 then
+							-- r_vga <= "111";
+							-- g_vga <= "000";							
+							-- b_vga <= "000";
+						-- elsif cnt_h_sync_vga = 361 then
+							-- r_vga <= "000";
+							-- g_vga <= "111";							
+							-- b_vga <= "000";
+						-- elsif cnt_h_sync_vga = 371 then
+							-- r_vga <= "000";
+							-- g_vga <= "000";							
+							-- b_vga <= "111";
+						-- elsif cnt_h_sync_vga = 381 then
+							-- r_vga <= "111";
+							-- g_vga <= "000";							
+							-- b_vga <= "000";
+						-- elsif cnt_h_sync_vga = 391 then
+							-- r_vga <= "000";
+							-- g_vga <= "111";							
+							-- b_vga <= "000";
+						-- elsif cnt_h_sync_vga = 401 then
+							-- r_vga <= "000";
+							-- g_vga <= "000";							
+							-- b_vga <= "111";
+						-- elsif cnt_h_sync_vga = 411 then
+							-- r_vga <= "111";
+							-- g_vga <= "000";							
+							-- b_vga <= "000";
+						-- elsif cnt_h_sync_vga = 421 then
+							-- r_vga <= "000";
+							-- g_vga <= "111";							
+							-- b_vga <= "000";
+						-- elsif cnt_h_sync_vga = 431 then
+							-- r_vga <= "000";
+							-- g_vga <= "000";							
+							-- b_vga <= "111";
+						-- elsif cnt_h_sync_vga = 441 then
+							-- r_vga <= "111";
+							-- g_vga <= "000";							
+							-- b_vga <= "000";
+						-- elsif cnt_h_sync_vga = 451 then
+							-- r_vga <= "000";
+							-- g_vga <= "111";							
+							-- b_vga <= "000";
+						-- elsif cnt_h_sync_vga = 461 then
+							-- r_vga <= "000";
+							-- g_vga <= "000";							
+							-- b_vga <= "111";
+						-- elsif cnt_h_sync_vga = 471 then
+							-- r_vga <= "111";
+							-- g_vga <= "000";							
+							-- b_vga <= "000";
+						-- elsif cnt_h_sync_vga = 481 then
+							-- r_vga <= "000";
+							-- g_vga <= "111";							
+							-- b_vga <= "000";
+						-- elsif cnt_h_sync_vga = 491 then
+							-- r_vga <= "000";
+							-- g_vga <= "000";							
+							-- b_vga <= "111";
+						-- elsif cnt_h_sync_vga = 501 then
+							-- r_vga <= "111";
+							-- g_vga <= "000";							
+							-- b_vga <= "000";
+						-- elsif cnt_h_sync_vga = 511 then
+							-- r_vga <= "000";
+							-- g_vga <= "111";							
+							-- b_vga <= "000";
+						-- elsif cnt_h_sync_vga = 521 then
+							-- r_vga <= "000";
+							-- g_vga <= "000";							
+							-- b_vga <= "111";
+						-- elsif cnt_h_sync_vga = 531 then
+							-- r_vga <= "111";
+							-- g_vga <= "000";							
+							-- b_vga <= "000";
+						-- end if;
+					-- end if;
+					-- if( ( cnt_v_sync_vga > (480 - CONV_INTEGER(LTP_Analyze(cnt_h_sync_vga-281)(8 downto 0)))) and cnt_v_sync_vga < 480 )then					
+						-- r_vga <= "111";
+						-- g_vga <= "000";							
+						-- b_vga <= "000";
+					-- else
+						-- r_vga <= "111";
+						-- g_vga <= "111";
+						-- b_vga <= "111";						
+					-- end if;	
+					if( cnt_h_sync_vga = 300 and ( cnt_v_sync_vga > (480 - CONV_INTEGER(LTP_Analyze(1)(8 downto 0)))) and cnt_v_sync_vga < 480 )then					
 						r_vga <= "111";
-						g_vga <= "000";							
-						b_vga <= "000";
-					else
-						r_vga <= "000";
 						g_vga <= "000";
 						b_vga <= "000";
-					end if;				
+					elsif( cnt_h_sync_vga = 310 and ( cnt_v_sync_vga > (480 - CONV_INTEGER(LTP_Analyze(2)(8 downto 0)))) and cnt_v_sync_vga < 480 )then					
+						r_vga <= "111";
+						g_vga <= "000";
+						b_vga <= "000";
+					elsif( cnt_h_sync_vga = 320 and ( cnt_v_sync_vga > (480 - CONV_INTEGER(LTP_Analyze(4)(8 downto 0)))) and cnt_v_sync_vga < 480 )then					
+						r_vga <= "111";
+						g_vga <= "000";
+						b_vga <= "000";
+					elsif( cnt_h_sync_vga = 330 and ( cnt_v_sync_vga > (480 - CONV_INTEGER(LTP_Analyze(8)(8 downto 0)))) and cnt_v_sync_vga < 480 )then					
+						r_vga <= "111";
+						g_vga <= "000";
+						b_vga <= "000";
+					elsif( cnt_h_sync_vga = 340 and ( cnt_v_sync_vga > (480 - CONV_INTEGER(LTP_Analyze(16)(8 downto 0)))) and cnt_v_sync_vga < 480 )then					
+						r_vga <= "111";
+						g_vga <= "000";
+						b_vga <= "000";
+					elsif( cnt_h_sync_vga = 350 and ( cnt_v_sync_vga > (480 - CONV_INTEGER(LTP_Analyze(32)(8 downto 0)))) and cnt_v_sync_vga < 480 )then					
+						r_vga <= "111";
+						g_vga <= "000";
+						b_vga <= "000";
+					elsif( cnt_h_sync_vga = 360 and ( cnt_v_sync_vga > (480 - CONV_INTEGER(LTP_Analyze(64)(8 downto 0)))) and cnt_v_sync_vga < 480 )then					
+						r_vga <= "111";
+						g_vga <= "000";
+						b_vga <= "000";
+					elsif( cnt_h_sync_vga = 370 and ( cnt_v_sync_vga > (480 - CONV_INTEGER(LTP_Analyze(128)(8 downto 0)))) and cnt_v_sync_vga < 480 )then					
+						r_vga <= "111";
+						g_vga <= "000";
+						b_vga <= "000";		
+					elsif( cnt_h_sync_vga = 400 and ( cnt_v_sync_vga > (480 - CONV_INTEGER(LTP_Character)) and cnt_v_sync_vga < 480 ))then					
+						r_vga <= "111";
+						g_vga <= "111";
+						b_vga <= "000";	
+					elsif( cnt_h_sync_vga = 550 and ( cnt_v_sync_vga > 100) and cnt_v_sync_vga < 480 )then					
+						r_vga <= "000";
+						g_vga <= "111";
+						b_vga <= "111";	
+					else
+						r_vga <= "111";
+						g_vga <= "111";
+						b_vga <= "111";
+					end if;	
 				else				
 				-- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ Catch Special Range $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ --
 					if((cnt_h_sync_vga > 100 and cnt_h_sync_vga < boundary_edge_H)and(cnt_v_sync_vga > 100 and cnt_v_sync_vga < boundary_edge_V) )then
@@ -358,12 +514,39 @@ elsif rising_edge(clk_video) then
 								b_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
 
 								LTP_Analyze(CONV_INTEGER(LTP_Value(buf_vga_Y_out_cnt)(7 downto 0))) <= LTP_Analyze(CONV_INTEGER(LTP_Value(buf_vga_Y_out_cnt)(7 downto 0))) + '1';	
-								
+								LTP_Div_Character <= LTP_Analyze(1) + LTP_Analyze(2) + LTP_Analyze(4) + LTP_Analyze(8) + LTP_Analyze(16) + LTP_Analyze(32) + LTP_Analyze(64) + LTP_Analyze(128) ;
+								LTP_Character <= LTP_Div_Character(10 downto 3);
 								-- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ Inner Special Range $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ --
 							end if;
 						end if;
 					else					
 						if((cnt_v_sync_vga > 300 and cnt_v_sync_vga < 480)) then
+							if(cnt_h_sync_vga > 1 and cnt_h_sync_vga < 10) and (cnt_v_sync_vga > 480-50 and cnt_v_sync_vga < 480) then								
+								r_vga <= "000";
+								g_vga <= "000";
+								b_vga <= "111";
+							elsif((cnt_h_sync_vga > 10 and cnt_h_sync_vga < 20) and (cnt_v_sync_vga > 480-100 and cnt_v_sync_vga < 480)) then 
+								r_vga <= "000";
+								g_vga <= "111";
+								b_vga <= "111";
+							elsif((cnt_h_sync_vga > 20 and cnt_h_sync_vga < 30) and(cnt_v_sync_vga > 480-150 and cnt_v_sync_vga < 480)) then 
+								r_vga <= "111";
+								g_vga <= "000";
+								b_vga <= "111";							
+							else	
+								if((LTP_Character > 100 and LTP_Character < 150) and (cnt_h_sync_vga > 30 and cnt_h_sync_vga < 60) and(cnt_v_sync_vga > 480-150 and cnt_v_sync_vga < 480)) then 
+									r_vga <= "000";
+									g_vga <= "111";
+									b_vga <= "000";
+								else
+									r_vga <= "111";
+									g_vga <= "000";
+									b_vga <= "000";
+								end if;
+								-- r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+								-- g_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+								-- b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);	
+							end if;
 							-- if((cnt_v_sync_vga > 310 and cnt_v_sync_vga < 315))then
 								-- if(cnt_h_sync_vga > 0 and cnt_h_sync_vga < CONV_INTEGER(LTP_Analyze(0)(9 downto 0)))then					
 									-- r_vga <= "111";
@@ -480,8 +663,9 @@ elsif rising_edge(clk_video) then
 				buf_vga_Y_out_cnt <= 639;
 			end if;
 		else
+			
 			LTP_Analyze(cnt_h_sync_vga) <= (others=>'0');
-
+			
 			r_vga <= "000";
 			g_vga <= "000";
 			b_vga <= "000";
@@ -578,6 +762,76 @@ end process;
 --############################################### Buffer State ###############################################--
 
 
+-- --############################################### Sobel Calculate ###############################################--
+process(rst_system, clk_video)
+variable sobel_x_cc_1 : std_logic_vector(9 downto 0);
+variable sobel_x_cc_2 : std_logic_vector(9 downto 0);
+variable sobel_y_cc_1 : std_logic_vector(9 downto 0);
+variable sobel_y_cc_2 : std_logic_vector(9 downto 0);
+begin
+if rst_system = '0' then
+	SB_XSCR <= "0000000000";
+	SB_YSCR <= "0000000000";
+	SB_SUM  <= "00000000000";
+	SB_CRB_data <= '0';
+-- system reset
+	redata_cnt <= 0 ;
+	redata_en <= '0';
+	Sobel_Cal_en <= '0';
+else
+	if rising_edge(clk_video) then
+		if buf_sobel_cc_en = '1' then
+			if buf_data_state(0) = '1' then
+			-- if buf_data_state(0) = '0' then
+				sobel_x_cc_1 := SB_buf_0_data_1 + SB_buf_0_data_2 + SB_buf_0_data_2 + SB_buf_0_data_3;
+				sobel_x_cc_2 := SB_buf_2_data_1 + SB_buf_2_data_2 + SB_buf_2_data_2 + SB_buf_2_data_3;
+				
+				sobel_y_cc_1 := SB_buf_0_data_1 + SB_buf_1_data_1 + SB_buf_1_data_1 + SB_buf_2_data_1;
+				sobel_y_cc_2 := SB_buf_0_data_3 + SB_buf_1_data_3 + SB_buf_1_data_3 + SB_buf_2_data_3;
+	
+				if sobel_x_cc_1 >= sobel_x_cc_2 then
+					SB_XSCR <= sobel_x_cc_1 - sobel_x_cc_2;
+				else
+					SB_XSCR <= sobel_x_cc_2 - sobel_x_cc_1;
+				end if;
+				
+				if sobel_y_cc_1 >= sobel_y_cc_2 then
+					SB_YSCR <= sobel_y_cc_1 - sobel_y_cc_2;
+				else
+					SB_YSCR <= sobel_y_cc_2 - sobel_y_cc_1;
+				end if;
+				Sobel_Cal_en <= '0';
+			else
+				--if ((SB_XSCR > "0001100000" and SB_XSCR < "0011100000") or (SB_YSCR > "0001100000" and SB_YSCR < "0011100000")) then
+					-- SB_CRB_data <= '1';
+				Sobel_Cal_en <= '1';
+-- sum  X_sobel  &  Y_sobel
+				SB_SUM <= "00000000000"+SB_XSCR+SB_YSCR;
+-- put SUM_sobel to SB_buf_redata(0~640) SB_SUM 10 downto 0 9bits + 9bits							
+				if SB_SUM > "00111111111" then
+					SB_buf_redata(redata_cnt) <= "11111111";
+				else
+					SB_buf_redata(redata_cnt) <= SB_SUM(9 downto 2); 
+				end if;
+-- counter redata_cnt to get SB_buf_redata address
+				if redata_cnt < 639 then
+						redata_cnt <= redata_cnt + 1;
+				else
+					redata_cnt <= 0;
+				end if;
+			end if;
+		else
+			SB_XSCR <= "0000000000";
+			SB_YSCR <= "0000000000";
+			SB_CRB_data <= '0';
+-- when cnt_video_hsync > 1280, let redata_cnt be reset
+			redata_cnt <= 0;
+			Sobel_Cal_en <= '0';
+		end if;
+	end if;
+end if;
+end process;
+-- --############################################### Sobel Calculate ###############################################--
 
 --############################################### Matrix Expression ###############################################--
 --			 Col-1   Col-2  Col-3
@@ -650,81 +904,77 @@ end if;
 end process;
 --############################################### LBP Buffer Matrix ###############################################--
 
---############################################### Sobel Calculate ###############################################--
+
+--############################################### Sobel_Cal Buffer Matrix ###############################################--
 process(rst_system, clk_video)
-variable sobel_x_cc_1 : std_logic_vector(9 downto 0);
-variable sobel_x_cc_2 : std_logic_vector(9 downto 0);
-variable sobel_y_cc_1 : std_logic_vector(9 downto 0);
-variable sobel_y_cc_2 : std_logic_vector(9 downto 0);
 begin
 if rst_system = '0' then
-	SB_XSCR <= "0000000000";
-	SB_YSCR <= "0000000000";
-	SB_SUM  <= "00000000000";
-	redata_cnt <= 0 ;
-	Sobel_Cal_en <= '0';
+	Sobel_Cal_R1C1 <= "0000000000";
+	Sobel_Cal_R2C1 <= "0000000000";
+	Sobel_Cal_R3C1 <= "0000000000";
+	
+	Sobel_Cal_R1C2 <= "0000000000";
+	Sobel_Cal_R2C2 <= "0000000000";
+	Sobel_Cal_R3C2 <= "0000000000";
+	
+	Sobel_Cal_R1C3 <= "0000000000";
+	Sobel_Cal_R2C3 <= "0000000000";
+	Sobel_Cal_R3C3 <= "0000000000";
+	Sobel_Cal_Buf_Cnt <= 0;
+
 else
 	if rising_edge(clk_video) then
-		if buf_sobel_cc_en = '1' then
-			if buf_data_state(0) = '1' then
-				sobel_x_cc_1 := Matrix_R1C3 + Matrix_R2C3 + Matrix_R2C3 + Matrix_R3C3;
-				sobel_x_cc_2 := Matrix_R1C1 + Matrix_R2C1 + Matrix_R2C1 + Matrix_R3C1;
+		if (buf_vga_en = '1' and cnt_video_hsync < 1280) then
+			if Sobel_Cal_en = '0' then				
+				Sobel_Cal_R1C1 <= "00" & Sobel_Cal_Column_1(Sobel_Cal_Buf_Cnt);
+				Sobel_Cal_R2C1 <= Sobel_Cal_R1C1;
+				Sobel_Cal_R3C1 <= Sobel_Cal_R2C1;
 				
-				sobel_y_cc_1 := Matrix_R1C3 + Matrix_R1C2 + Matrix_R1C2 + Matrix_R1C1;
-				sobel_y_cc_2 := Matrix_R3C3 + Matrix_R3C2 + Matrix_R3C2 + Matrix_R3C1;
-	
-				if sobel_x_cc_1 >= sobel_x_cc_2 then
-					SB_XSCR <= sobel_x_cc_1 - sobel_x_cc_2;
-				else
-					SB_XSCR <= sobel_x_cc_2 - sobel_x_cc_1;
-				end if;
+				Sobel_Cal_R1C2 <= "00" & Sobel_Cal_Column_2(Sobel_Cal_Buf_Cnt);
+				Sobel_Cal_R2C2 <= Sobel_Cal_R1C2;
+				Sobel_Cal_R3C2 <= Sobel_Cal_R2C2;
 				
-				if sobel_y_cc_1 >= sobel_y_cc_2 then
-					SB_YSCR <= sobel_y_cc_1 - sobel_y_cc_2;
+				Sobel_Cal_R1C3 <= "00" & Sobel_Cal_Column_3(Sobel_Cal_Buf_Cnt);
+				Sobel_Cal_R2C3 <= Sobel_Cal_R1C3;
+				Sobel_Cal_R3C3 <= Sobel_Cal_R2C3;
+				
+			else	
+
+				Sobel_Cal_Column_1(Sobel_Cal_Buf_Cnt) <= SB_buf_redata(redata_cnt)(7 downto 0);
+				Sobel_Cal_Column_2(Sobel_Cal_Buf_Cnt) <= Sobel_Cal_R3C1(7 downto 0);
+				Sobel_Cal_Column_3(Sobel_Cal_Buf_Cnt) <= Sobel_Cal_R3C2(7 downto 0);
+				
+				if Sobel_Cal_Buf_Cnt = Sobel_Cal_Buf_Length_Max then
+					Sobel_Cal_Buf_Cnt <= 0;
 				else
-					SB_YSCR <= sobel_y_cc_2 - sobel_y_cc_1;
-				end if;
-				Sobel_Cal_en <= '0';
-			else
-				Sobel_Cal_en <= '1';
--- sum  X_sobel  &  Y_sobel
-				SB_SUM <= "00000000000"+SB_XSCR+SB_YSCR;
--- put SUM_sobel to SB_buf_redata(0~640)
-				SB_buf_redata(redata_cnt) <= SB_SUM(9 downto 2); 
--- counter redata_cnt to get SB_buf_redata address
-				if redata_cnt < 639 then
-					redata_cnt <= redata_cnt + 1;
-				else
-					redata_cnt <= 0;
-				end if;
+					Sobel_Cal_Buf_Cnt <= Sobel_Cal_Buf_Cnt + 1 ;
+				end if;				
 			end if;
 		else
-			SB_XSCR <= "0000000000";
-			SB_YSCR <= "0000000000";
-			SB_CRB_data <= '0';
--- when cnt_video_hsync > 1280, let redata_cnt be reset
-			redata_cnt <= 0;
-			Sobel_Cal_en <= '0';
+			Sobel_Cal_R1C1 <= "0000000000";
+			Sobel_Cal_R2C1 <= "0000000000";
+			Sobel_Cal_R3C1 <= "0000000000";
+			
+			Sobel_Cal_R1C2 <= "0000000000";
+			Sobel_Cal_R2C2 <= "0000000000";
+			Sobel_Cal_R3C2 <= "0000000000";
+			
+			Sobel_Cal_R1C3 <= "0000000000";
+			Sobel_Cal_R2C3 <= "0000000000";
+			Sobel_Cal_R3C3 <= "0000000000";
+			Sobel_Cal_Buf_Cnt <= 0;
 		end if;
 	end if;
 end if;
 end process;
---############################################### Sobel Calculate ###############################################--
+--############################################### Sobel_Cal Buffer Matrix ###############################################--
 
 
---############################################### LBP Calculate ###############################################--
+--############################################### Sobel_Cal to LTP Calculate ###############################################--
 process(rst_system, clk_video)
 
-variable R2C2_Encode_Reg_7	: std_logic_vector(9 downto 0);
-variable R2C2_Encode_Reg_6	: std_logic_vector(9 downto 0);
-variable R2C2_Encode_Reg_5	: std_logic_vector(9 downto 0);
-variable R2C2_Encode_Reg_4	: std_logic_vector(9 downto 0);
-variable R2C2_Encode_Reg_3	: std_logic_vector(9 downto 0);
-variable R2C2_Encode_Reg_2	: std_logic_vector(9 downto 0);
-variable R2C2_Encode_Reg_1	: std_logic_vector(9 downto 0);
-variable R2C2_Encode_Reg_0	: std_logic_vector(9 downto 0);
-
-
+variable R2C2_Encode_Reg_U	: std_logic_vector(9 downto 0);
+variable R2C2_Encode_Reg_D	: std_logic_vector(9 downto 0);
 begin
 if rst_system = '0' then
 	R2C2_Encode <= (others =>'0');
@@ -734,133 +984,92 @@ if rst_system = '0' then
 else
 	if rising_edge(clk_video) then
 		if buf_sobel_cc_en = '1' then
-			if LBP_Data_State(0) = '1' then
+			if Sobel_Cal_en = '1' then
 			-- if buf_data_state(0) = '0' then
-				if Matrix_R1C1 > Matrix_R2C2 then
-					R2C2_Encode_Reg_7 := Matrix_R1C1 - Matrix_R2C2;
-				else
-					R2C2_Encode_Reg_7 := Matrix_R2C2 - Matrix_R1C1;
-				end if;
-				if Matrix_R2C1 > Matrix_R2C2 then
-					R2C2_Encode_Reg_6 := Matrix_R2C1 - Matrix_R2C2;
-				else
-					R2C2_Encode_Reg_6 := Matrix_R2C2 - Matrix_R2C1;
-				end if;
-				if Matrix_R3C1 > Matrix_R2C2 then
-					R2C2_Encode_Reg_5 := Matrix_R3C1 - Matrix_R2C2;
-				else
-					R2C2_Encode_Reg_5 := Matrix_R2C2 - Matrix_R3C1;
-				end if;
-				if Matrix_R3C2 > Matrix_R2C2 then
-					R2C2_Encode_Reg_4 := Matrix_R3C2 - Matrix_R2C2;	
-				else
-					R2C2_Encode_Reg_4 := Matrix_R2C2 - Matrix_R3C2;	
-				end if;
-				
-				if Matrix_R3C3 > Matrix_R2C2 then
-					R2C2_Encode_Reg_3 := Matrix_R3C3 - Matrix_R2C2;
-				else
-					R2C2_Encode_Reg_3 := Matrix_R2C2 - Matrix_R3C3;
-				end if;
-				if Matrix_R2C3 > Matrix_R2C2 then
-					R2C2_Encode_Reg_2 := Matrix_R2C3 - Matrix_R2C2;
-				else
-					R2C2_Encode_Reg_2 := Matrix_R2C2 - Matrix_R2C3;
-				end if;
-				if Matrix_R1C3 > Matrix_R2C2 then
-					R2C2_Encode_Reg_1 := Matrix_R1C3 - Matrix_R2C2;
-				else
-					R2C2_Encode_Reg_1 := Matrix_R2C2 - Matrix_R1C3;
-				end if;
-				if Matrix_R1C2 > Matrix_R2C2 then
-					R2C2_Encode_Reg_0 := Matrix_R1C2 - Matrix_R2C2;
-				else
-					R2C2_Encode_Reg_0 := Matrix_R2C2 - Matrix_R1C2;
-				end if;
-				
-				if R2C2_Encode_Reg_7 > R2C2_Encode_Threshold then
+				R2C2_Encode_Reg_U := Sobel_Cal_R2C2 + R2C2_Encode_Threshold ;
+				R2C2_Encode_Reg_D := Sobel_Cal_R2C2 - R2C2_Encode_Threshold ;
+
+				if Sobel_Cal_R1C1 > R2C2_Encode_Reg_U then
 					R2C2_Encode_Bit(7) <= '1';
 					R2C2_Encode_Bit2(7) <= '0';
-				elsif R2C2_Encode_Reg_7 < R2C2_Encode_Threshold then
+				elsif Sobel_Cal_R1C1 < R2C2_Encode_Reg_D then
 					R2C2_Encode_Bit(7) <= '0';
 					R2C2_Encode_Bit2(7) <= '1';
-				else
+				else 
 					R2C2_Encode_Bit(7) <= '0';
 					R2C2_Encode_Bit2(7) <= '0';
 				end if;
-				
-				if R2C2_Encode_Reg_6 > R2C2_Encode_Threshold then
+				if Sobel_Cal_R2C1 > R2C2_Encode_Reg_U then
 					R2C2_Encode_Bit(6) <= '1';
 					R2C2_Encode_Bit2(6) <= '0';
-				elsif R2C2_Encode_Reg_6 < R2C2_Encode_Threshold then
+				elsif Sobel_Cal_R2C1 < R2C2_Encode_Reg_D then
 					R2C2_Encode_Bit(6) <= '0';
 					R2C2_Encode_Bit2(6) <= '1';
-				else
+				else 
 					R2C2_Encode_Bit(6) <= '0';
 					R2C2_Encode_Bit2(6) <= '0';
 				end if;
-				
-				if R2C2_Encode_Reg_5 > R2C2_Encode_Threshold then
+				if Sobel_Cal_R3C1 > R2C2_Encode_Reg_U then
 					R2C2_Encode_Bit(5) <= '1';
 					R2C2_Encode_Bit2(5) <= '0';
-				elsif R2C2_Encode_Reg_5 < R2C2_Encode_Threshold then
+				elsif Sobel_Cal_R3C1 < R2C2_Encode_Reg_D then
 					R2C2_Encode_Bit(5) <= '0';
 					R2C2_Encode_Bit2(5) <= '1';
-				else
+				else 
 					R2C2_Encode_Bit(5) <= '0';
 					R2C2_Encode_Bit2(5) <= '0';
-				end if;		
-				if R2C2_Encode_Reg_4 > R2C2_Encode_Threshold then
+				end if;
+				if Sobel_Cal_R3C2 > R2C2_Encode_Reg_U then
 					R2C2_Encode_Bit(4) <= '1';
 					R2C2_Encode_Bit2(4) <= '0';
-				elsif R2C2_Encode_Reg_4 < R2C2_Encode_Threshold then
+				elsif Sobel_Cal_R3C2 < R2C2_Encode_Reg_D then
 					R2C2_Encode_Bit(4) <= '0';
 					R2C2_Encode_Bit2(4) <= '1';
-				else
+				else 
 					R2C2_Encode_Bit(4) <= '0';
 					R2C2_Encode_Bit2(4) <= '0';
 				end if;
-				if R2C2_Encode_Reg_3 > R2C2_Encode_Threshold then
+				if Sobel_Cal_R3C3 > R2C2_Encode_Reg_U then
 					R2C2_Encode_Bit(3) <= '1';
 					R2C2_Encode_Bit2(3) <= '0';
-				elsif R2C2_Encode_Reg_3 < R2C2_Encode_Threshold then
+				elsif Sobel_Cal_R3C3 < R2C2_Encode_Reg_D then
 					R2C2_Encode_Bit(3) <= '0';
 					R2C2_Encode_Bit2(3) <= '1';
-				else
+				else 
 					R2C2_Encode_Bit(3) <= '0';
 					R2C2_Encode_Bit2(3) <= '0';
 				end if;
-				if R2C2_Encode_Reg_2 > R2C2_Encode_Threshold then
+				if Sobel_Cal_R2C3 > R2C2_Encode_Reg_U then
 					R2C2_Encode_Bit(2) <= '1';
 					R2C2_Encode_Bit2(2) <= '0';
-				elsif R2C2_Encode_Reg_2 < R2C2_Encode_Threshold then
+				elsif Sobel_Cal_R2C3 < R2C2_Encode_Reg_D then
 					R2C2_Encode_Bit(2) <= '0';
 					R2C2_Encode_Bit2(2) <= '1';
-				else
+				else 
 					R2C2_Encode_Bit(2) <= '0';
 					R2C2_Encode_Bit2(2) <= '0';
 				end if;
-				if R2C2_Encode_Reg_1 > R2C2_Encode_Threshold then
+				if Sobel_Cal_R1C3 > R2C2_Encode_Reg_U then
 					R2C2_Encode_Bit(1) <= '1';
 					R2C2_Encode_Bit2(1) <= '0';
-				elsif R2C2_Encode_Reg_1 < R2C2_Encode_Threshold then
+				elsif Sobel_Cal_R1C3 < R2C2_Encode_Reg_D then
 					R2C2_Encode_Bit(1) <= '0';
 					R2C2_Encode_Bit2(1) <= '1';
-				else
+				else 
 					R2C2_Encode_Bit(1) <= '0';
 					R2C2_Encode_Bit2(1) <= '0';
 				end if;
-				if R2C2_Encode_Reg_0 > R2C2_Encode_Threshold then
+				if Sobel_Cal_R1C2 > R2C2_Encode_Reg_U then
 					R2C2_Encode_Bit(0) <= '1';
 					R2C2_Encode_Bit2(0) <= '0';
-				elsif R2C2_Encode_Reg_0 < R2C2_Encode_Threshold then
+				elsif Sobel_Cal_R1C2 < R2C2_Encode_Reg_D then
 					R2C2_Encode_Bit(0) <= '0';
 					R2C2_Encode_Bit2(0) <= '1';
-				else
+				else 
 					R2C2_Encode_Bit(0) <= '0';
 					R2C2_Encode_Bit2(0) <= '0';
 				end if;
-				
+
 			else
 				if ImageSelect = '0' then
 					R2C2_Encode <= R2C2_Encode_Bit;
@@ -874,17 +1083,7 @@ else
 				else
 					LTP_Cnt <= 0;
 				end if;
-				
--- sum  X_sobel  &  Y_sobel
-				-- SB_SUM <= "00000000000"+SB_XSCR+SB_YSCR;
--- -- put SUM_sobel to SB_buf_redata(0~640)
-				-- SB_buf_redata(redata_cnt) <= SB_SUM(9 downto 2); 
--- -- counter redata_cnt to get SB_buf_redata address
-				-- if redata_cnt < 639 then
-					-- redata_cnt <= redata_cnt + 1;
-				-- else
-					-- redata_cnt <= 0;
-				-- end if;
+
 			end if;
 		else
 			R2C2_Encode <= (others =>'0');
@@ -895,7 +1094,252 @@ else
 	end if;
 end if;
 end process;
---############################################### LBP Calculate ###############################################--
+--############################################### Sobel_Cal to LTP Calculate ###############################################--
+
+
+
+--############################################### Sobel Calculate ###############################################--
+-- process(rst_system, clk_video)
+-- variable sobel_x_cc_1 : std_logic_vector(9 downto 0);
+-- variable sobel_x_cc_2 : std_logic_vector(9 downto 0);
+-- variable sobel_y_cc_1 : std_logic_vector(9 downto 0);
+-- variable sobel_y_cc_2 : std_logic_vector(9 downto 0);
+-- begin
+-- if rst_system = '0' then
+	-- SB_XSCR <= "0000000000";
+	-- SB_YSCR <= "0000000000";
+	-- SB_SUM  <= "00000000000";
+	-- redata_cnt <= 0 ;
+-- else
+	-- if rising_edge(clk_video) then
+		-- if buf_sobel_cc_en = '1' then
+			-- if LBP_Data_State(0) = '1' then
+				-- sobel_x_cc_1 := Matrix_R1C3 + Matrix_R2C3 + Matrix_R2C3 + Matrix_R3C3;
+				-- sobel_x_cc_2 := Matrix_R1C1 + Matrix_R2C1 + Matrix_R2C1 + Matrix_R3C1;
+				
+				-- sobel_y_cc_1 := Matrix_R1C3 + Matrix_R1C2 + Matrix_R1C2 + Matrix_R1C1;
+				-- sobel_y_cc_2 := Matrix_R3C3 + Matrix_R3C2 + Matrix_R3C2 + Matrix_R3C1;
+	
+				-- if sobel_x_cc_1 >= sobel_x_cc_2 then
+					-- SB_XSCR <= sobel_x_cc_1 - sobel_x_cc_2;
+				-- else
+					-- SB_XSCR <= sobel_x_cc_2 - sobel_x_cc_1;
+				-- end if;
+				
+				-- if sobel_y_cc_1 >= sobel_y_cc_2 then
+					-- SB_YSCR <= sobel_y_cc_1 - sobel_y_cc_2;
+				-- else
+					-- SB_YSCR <= sobel_y_cc_2 - sobel_y_cc_1;
+				-- end if;
+			-- else
+-- -- sum  X_sobel  &  Y_sobel
+				-- SB_SUM <= "00000000000"+SB_XSCR+SB_YSCR;
+-- -- put SUM_sobel to SB_buf_redata(0~640)
+				-- SB_buf_redata(redata_cnt) <= SB_SUM(9 downto 2); 
+-- -- counter redata_cnt to get SB_buf_redata address
+				-- if redata_cnt < 639 then
+					-- redata_cnt <= redata_cnt + 1;
+				-- else
+					-- redata_cnt <= 0;
+				-- end if;
+			-- end if;
+		-- else
+			-- SB_XSCR <= "0000000000";
+			-- SB_YSCR <= "0000000000";
+			-- SB_CRB_data <= '0';
+-- -- when cnt_video_hsync > 1280, let redata_cnt be reset
+			-- redata_cnt <= 0;
+		-- end if;
+	-- end if;
+-- end if;
+-- end process;
+--############################################### Sobel Calculate ###############################################--
+
+
+-- --############################################### LBP Calculate ###############################################--
+-- process(rst_system, clk_video)
+
+-- variable R2C2_Encode_Reg_7	: std_logic_vector(9 downto 0);
+-- variable R2C2_Encode_Reg_6	: std_logic_vector(9 downto 0);
+-- variable R2C2_Encode_Reg_5	: std_logic_vector(9 downto 0);
+-- variable R2C2_Encode_Reg_4	: std_logic_vector(9 downto 0);
+-- variable R2C2_Encode_Reg_3	: std_logic_vector(9 downto 0);
+-- variable R2C2_Encode_Reg_2	: std_logic_vector(9 downto 0);
+-- variable R2C2_Encode_Reg_1	: std_logic_vector(9 downto 0);
+-- variable R2C2_Encode_Reg_0	: std_logic_vector(9 downto 0);
+
+
+-- begin
+-- if rst_system = '0' then
+	-- R2C2_Encode <= (others =>'0');
+	-- R2C2_Encode_Bit <= (others =>'0');
+	-- R2C2_Encode_Bit2<= (others =>'0');
+	-- LTP_Cnt <= 0;
+-- else
+	-- if rising_edge(clk_video) then
+		-- if buf_sobel_cc_en = '1' then
+			-- if LBP_Data_State(0) = '1' then
+			-- -- if buf_data_state(0) = '0' then
+				-- if Matrix_R1C1 > Matrix_R2C2 then
+					-- R2C2_Encode_Reg_7 := Matrix_R1C1 - Matrix_R2C2;
+				-- else
+					-- R2C2_Encode_Reg_7 := Matrix_R2C2 - Matrix_R1C1;
+				-- end if;
+				-- if Matrix_R2C1 > Matrix_R2C2 then
+					-- R2C2_Encode_Reg_6 := Matrix_R2C1 - Matrix_R2C2;
+				-- else
+					-- R2C2_Encode_Reg_6 := Matrix_R2C2 - Matrix_R2C1;
+				-- end if;
+				-- if Matrix_R3C1 > Matrix_R2C2 then
+					-- R2C2_Encode_Reg_5 := Matrix_R3C1 - Matrix_R2C2;
+				-- else
+					-- R2C2_Encode_Reg_5 := Matrix_R2C2 - Matrix_R3C1;
+				-- end if;
+				-- if Matrix_R3C2 > Matrix_R2C2 then
+					-- R2C2_Encode_Reg_4 := Matrix_R3C2 - Matrix_R2C2;	
+				-- else
+					-- R2C2_Encode_Reg_4 := Matrix_R2C2 - Matrix_R3C2;	
+				-- end if;
+				
+				-- if Matrix_R3C3 > Matrix_R2C2 then
+					-- R2C2_Encode_Reg_3 := Matrix_R3C3 - Matrix_R2C2;
+				-- else
+					-- R2C2_Encode_Reg_3 := Matrix_R2C2 - Matrix_R3C3;
+				-- end if;
+				-- if Matrix_R2C3 > Matrix_R2C2 then
+					-- R2C2_Encode_Reg_2 := Matrix_R2C3 - Matrix_R2C2;
+				-- else
+					-- R2C2_Encode_Reg_2 := Matrix_R2C2 - Matrix_R2C3;
+				-- end if;
+				-- if Matrix_R1C3 > Matrix_R2C2 then
+					-- R2C2_Encode_Reg_1 := Matrix_R1C3 - Matrix_R2C2;
+				-- else
+					-- R2C2_Encode_Reg_1 := Matrix_R2C2 - Matrix_R1C3;
+				-- end if;
+				-- if Matrix_R1C2 > Matrix_R2C2 then
+					-- R2C2_Encode_Reg_0 := Matrix_R1C2 - Matrix_R2C2;
+				-- else
+					-- R2C2_Encode_Reg_0 := Matrix_R2C2 - Matrix_R1C2;
+				-- end if;
+				
+				-- if R2C2_Encode_Reg_7 > R2C2_Encode_Threshold then
+					-- R2C2_Encode_Bit(7) <= '1';
+					-- R2C2_Encode_Bit2(7) <= '0';
+				-- elsif R2C2_Encode_Reg_7 < R2C2_Encode_Threshold then
+					-- R2C2_Encode_Bit(7) <= '0';
+					-- R2C2_Encode_Bit2(7) <= '1';
+				-- else
+					-- R2C2_Encode_Bit(7) <= '0';
+					-- R2C2_Encode_Bit2(7) <= '0';
+				-- end if;
+				
+				-- if R2C2_Encode_Reg_6 > R2C2_Encode_Threshold then
+					-- R2C2_Encode_Bit(6) <= '1';
+					-- R2C2_Encode_Bit2(6) <= '0';
+				-- elsif R2C2_Encode_Reg_6 < R2C2_Encode_Threshold then
+					-- R2C2_Encode_Bit(6) <= '0';
+					-- R2C2_Encode_Bit2(6) <= '1';
+				-- else
+					-- R2C2_Encode_Bit(6) <= '0';
+					-- R2C2_Encode_Bit2(6) <= '0';
+				-- end if;
+				
+				-- if R2C2_Encode_Reg_5 > R2C2_Encode_Threshold then
+					-- R2C2_Encode_Bit(5) <= '1';
+					-- R2C2_Encode_Bit2(5) <= '0';
+				-- elsif R2C2_Encode_Reg_5 < R2C2_Encode_Threshold then
+					-- R2C2_Encode_Bit(5) <= '0';
+					-- R2C2_Encode_Bit2(5) <= '1';
+				-- else
+					-- R2C2_Encode_Bit(5) <= '0';
+					-- R2C2_Encode_Bit2(5) <= '0';
+				-- end if;		
+				-- if R2C2_Encode_Reg_4 > R2C2_Encode_Threshold then
+					-- R2C2_Encode_Bit(4) <= '1';
+					-- R2C2_Encode_Bit2(4) <= '0';
+				-- elsif R2C2_Encode_Reg_4 < R2C2_Encode_Threshold then
+					-- R2C2_Encode_Bit(4) <= '0';
+					-- R2C2_Encode_Bit2(4) <= '1';
+				-- else
+					-- R2C2_Encode_Bit(4) <= '0';
+					-- R2C2_Encode_Bit2(4) <= '0';
+				-- end if;
+				-- if R2C2_Encode_Reg_3 > R2C2_Encode_Threshold then
+					-- R2C2_Encode_Bit(3) <= '1';
+					-- R2C2_Encode_Bit2(3) <= '0';
+				-- elsif R2C2_Encode_Reg_3 < R2C2_Encode_Threshold then
+					-- R2C2_Encode_Bit(3) <= '0';
+					-- R2C2_Encode_Bit2(3) <= '1';
+				-- else
+					-- R2C2_Encode_Bit(3) <= '0';
+					-- R2C2_Encode_Bit2(3) <= '0';
+				-- end if;
+				-- if R2C2_Encode_Reg_2 > R2C2_Encode_Threshold then
+					-- R2C2_Encode_Bit(2) <= '1';
+					-- R2C2_Encode_Bit2(2) <= '0';
+				-- elsif R2C2_Encode_Reg_2 < R2C2_Encode_Threshold then
+					-- R2C2_Encode_Bit(2) <= '0';
+					-- R2C2_Encode_Bit2(2) <= '1';
+				-- else
+					-- R2C2_Encode_Bit(2) <= '0';
+					-- R2C2_Encode_Bit2(2) <= '0';
+				-- end if;
+				-- if R2C2_Encode_Reg_1 > R2C2_Encode_Threshold then
+					-- R2C2_Encode_Bit(1) <= '1';
+					-- R2C2_Encode_Bit2(1) <= '0';
+				-- elsif R2C2_Encode_Reg_1 < R2C2_Encode_Threshold then
+					-- R2C2_Encode_Bit(1) <= '0';
+					-- R2C2_Encode_Bit2(1) <= '1';
+				-- else
+					-- R2C2_Encode_Bit(1) <= '0';
+					-- R2C2_Encode_Bit2(1) <= '0';
+				-- end if;
+				-- if R2C2_Encode_Reg_0 > R2C2_Encode_Threshold then
+					-- R2C2_Encode_Bit(0) <= '1';
+					-- R2C2_Encode_Bit2(0) <= '0';
+				-- elsif R2C2_Encode_Reg_0 < R2C2_Encode_Threshold then
+					-- R2C2_Encode_Bit(0) <= '0';
+					-- R2C2_Encode_Bit2(0) <= '1';
+				-- else
+					-- R2C2_Encode_Bit(0) <= '0';
+					-- R2C2_Encode_Bit2(0) <= '0';
+				-- end if;
+				
+			-- else
+				-- if ImageSelect = '0' then
+					-- R2C2_Encode <= R2C2_Encode_Bit;
+				-- else
+					-- R2C2_Encode <= R2C2_Encode_Bit2;
+				-- end if;
+				
+				-- LTP_Value(LTP_Cnt) <= R2C2_Encode;
+				-- if LTP_Cnt < 639 then
+					-- LTP_Cnt <= LTP_Cnt + 1;
+				-- else
+					-- LTP_Cnt <= 0;
+				-- end if;
+				
+-- -- sum  X_sobel  &  Y_sobel
+				-- -- SB_SUM <= "00000000000"+SB_XSCR+SB_YSCR;
+-- -- -- put SUM_sobel to SB_buf_redata(0~640)
+				-- -- SB_buf_redata(redata_cnt) <= SB_SUM(9 downto 2); 
+-- -- -- counter redata_cnt to get SB_buf_redata address
+				-- -- if redata_cnt < 639 then
+					-- -- redata_cnt <= redata_cnt + 1;
+				-- -- else
+					-- -- redata_cnt <= 0;
+				-- -- end if;
+			-- end if;
+		-- else
+			-- R2C2_Encode <= (others =>'0');
+			-- R2C2_Encode_Bit <= (others =>'0');
+-- -- when cnt_video_hsync > 1280, let redata_cnt be reset
+			-- LTP_Cnt <= 0;
+		-- end if;
+	-- end if;
+-- end if;
+-- end process;
+-- --############################################### LBP Calculate ###############################################--
 
 --############################################### DebugMux Matrix ###############################################--
 process(DebugMux)
