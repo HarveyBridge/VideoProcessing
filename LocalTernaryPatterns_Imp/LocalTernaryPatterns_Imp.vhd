@@ -185,12 +185,19 @@ signal boundary_edge_V : integer range 0 to 639:=300; -- 100 to 300
 ------------------|
 type Analyze_Buf is array (integer range 0 to 255) of std_logic_vector ((16-1) downto 0);
 type Analyze_Temp_Buf is array (integer range 0 to 8-1) of std_logic_vector ((16-1) downto 0);
+type Analyze_Queue_buf is array (integer range 0 to 255) of std_logic_vector ((32-1) downto 0);
+type Analyze_Queue is array (integer range 0 to 7) of Analyze_Queue_buf;
+
 signal R2C2_Encode 				: std_logic_vector(7 downto 0);
 signal R2C2_Encode_Threshold	: std_logic_vector(7 downto 0):="00001111";
 signal R2C2_Encode_Bit			: std_logic_vector(7 downto 0);
 signal R2C2_Encode_Bit2			: std_logic_vector(7 downto 0);
 signal LTP_Value				: Matrix_Buf;
 signal LTP_Analyze				: Analyze_Buf;
+
+signal LTP_Queue				: Analyze_Queue;
+signal LTP_Queue_Cnt			: integer range 0 to 7:=0;
+signal LTP_Display				: Analyze_Buf;
 
 signal LTP_Cnt					: integer range 0 to 639:=0;
 signal LTP_Analyze_Temp			: Analyze_Temp_Buf;
@@ -390,35 +397,35 @@ elsif rising_edge(clk_video) then
 							-- b_vga <= "111";						
 						-- end if;	
 						if Display_EN = '1' then						
-							if( cnt_h_sync_vga = 300 and ( cnt_v_sync_vga > (480 - CONV_INTEGER(LTP_Analyze(1)(8 downto 0)))) and cnt_v_sync_vga < 480 )then					
+							if( cnt_h_sync_vga = 300 and ( cnt_v_sync_vga > (480 - CONV_INTEGER(LTP_Display(1)(8 downto 0)))) and cnt_v_sync_vga < 480 )then					
 								r_vga <= "111";
 								g_vga <= "000";
 								b_vga <= "000";
-							elsif( cnt_h_sync_vga = 310 and ( cnt_v_sync_vga > (480 - CONV_INTEGER(LTP_Analyze(2)(8 downto 0)))) and cnt_v_sync_vga < 480 )then					
+							elsif( cnt_h_sync_vga = 310 and ( cnt_v_sync_vga > (480 - CONV_INTEGER(LTP_Display(2)(8 downto 0)))) and cnt_v_sync_vga < 480 )then					
 								r_vga <= "111";
 								g_vga <= "000";
 								b_vga <= "000";
-							elsif( cnt_h_sync_vga = 320 and ( cnt_v_sync_vga > (480 - CONV_INTEGER(LTP_Analyze(4)(8 downto 0)))) and cnt_v_sync_vga < 480 )then					
+							elsif( cnt_h_sync_vga = 320 and ( cnt_v_sync_vga > (480 - CONV_INTEGER(LTP_Display(4)(8 downto 0)))) and cnt_v_sync_vga < 480 )then					
 								r_vga <= "111";
 								g_vga <= "000";
 								b_vga <= "000";
-							elsif( cnt_h_sync_vga = 330 and ( cnt_v_sync_vga > (480 - CONV_INTEGER(LTP_Analyze(8)(8 downto 0)))) and cnt_v_sync_vga < 480 )then					
+							elsif( cnt_h_sync_vga = 330 and ( cnt_v_sync_vga > (480 - CONV_INTEGER(LTP_Display(8)(8 downto 0)))) and cnt_v_sync_vga < 480 )then					
 								r_vga <= "111";
 								g_vga <= "000";
 								b_vga <= "000";
-							elsif( cnt_h_sync_vga = 340 and ( cnt_v_sync_vga > (480 - CONV_INTEGER(LTP_Analyze(16)(8 downto 0)))) and cnt_v_sync_vga < 480 )then					
+							elsif( cnt_h_sync_vga = 340 and ( cnt_v_sync_vga > (480 - CONV_INTEGER(LTP_Display(16)(8 downto 0)))) and cnt_v_sync_vga < 480 )then					
 								r_vga <= "111";
 								g_vga <= "000";
 								b_vga <= "000";
-							elsif( cnt_h_sync_vga = 350 and ( cnt_v_sync_vga > (480 - CONV_INTEGER(LTP_Analyze(32)(8 downto 0)))) and cnt_v_sync_vga < 480 )then					
+							elsif( cnt_h_sync_vga = 350 and ( cnt_v_sync_vga > (480 - CONV_INTEGER(LTP_Display(32)(8 downto 0)))) and cnt_v_sync_vga < 480 )then					
 								r_vga <= "111";
 								g_vga <= "000";
 								b_vga <= "000";
-							elsif( cnt_h_sync_vga = 360 and ( cnt_v_sync_vga > (480 - CONV_INTEGER(LTP_Analyze(64)(8 downto 0)))) and cnt_v_sync_vga < 480 )then					
+							elsif( cnt_h_sync_vga = 360 and ( cnt_v_sync_vga > (480 - CONV_INTEGER(LTP_Display(64)(8 downto 0)))) and cnt_v_sync_vga < 480 )then					
 								r_vga <= "111";
 								g_vga <= "000";
 								b_vga <= "000";
-							elsif( cnt_h_sync_vga = 370 and ( cnt_v_sync_vga > (480 - CONV_INTEGER(LTP_Analyze(128)(8 downto 0)))) and cnt_v_sync_vga < 480 )then					
+							elsif( cnt_h_sync_vga = 370 and ( cnt_v_sync_vga > (480 - CONV_INTEGER(LTP_Display(128)(8 downto 0)))) and cnt_v_sync_vga < 480 )then					
 								r_vga <= "111";
 								g_vga <= "000";
 								b_vga <= "000";		
@@ -503,9 +510,9 @@ elsif rising_edge(clk_video) then
 								g_vga <= "000";
 								b_vga <= "111";	
 							else
-								r_vga <= "000";
-								g_vga <= "000";
-								b_vga <= "000";	
+								r_vga <= "111";
+								g_vga <= "111";
+								b_vga <= "111";	
 							end if;
 						else
 							r_vga <= "000";
@@ -534,10 +541,39 @@ elsif rising_edge(clk_video) then
 										LTP_Div_Character <= LTP_Analyze(1) + LTP_Analyze(2) + LTP_Analyze(4) + LTP_Analyze(8) + LTP_Analyze(16) + LTP_Analyze(32) + LTP_Analyze(64) + LTP_Analyze(128) ;
 										LTP_Character <= LTP_Div_Character(10 downto 3);
 									end if;
-									if FrameCnt > 30000 then
+									if FrameCnt = 30000 then
 										FrameCnt <= 0;	
+
+										LTP_Queue_Cnt <= LTP_Queue_Cnt + 1;
+										LTP_Queue(LTP_Queue_Cnt)(1)(15 downto 0) <= LTP_Analyze(1)(15 downto 0);
+										LTP_Queue(LTP_Queue_Cnt)(2)(15 downto 0) <= LTP_Analyze(2)(15 downto 0);
+										LTP_Queue(LTP_Queue_Cnt)(4)(15 downto 0) <= LTP_Analyze(4)(15 downto 0);
+										LTP_Queue(LTP_Queue_Cnt)(8)(15 downto 0) <= LTP_Analyze(8)(15 downto 0);
+										LTP_Queue(LTP_Queue_Cnt)(16)(15 downto 0) <= LTP_Analyze(16)(15 downto 0);
+										LTP_Queue(LTP_Queue_Cnt)(32)(15 downto 0) <= LTP_Analyze(32)(15 downto 0);
+										LTP_Queue(LTP_Queue_Cnt)(64)(15 downto 0) <= LTP_Analyze(64)(15 downto 0);
+										LTP_Queue(LTP_Queue_Cnt)(128)(15 downto 0) <= LTP_Analyze(128)(15 downto 0);
+										LTP_Display(1)(15 downto 0) <= LTP_Queue(0)(1)(19 downto 4) + LTP_Queue(1)(1)(19 downto 4) + LTP_Queue(2)(1)(19 downto 4) + LTP_Queue(3)(1)(19 downto 4) + LTP_Queue(4)(1)(19 downto 4) + LTP_Queue(5)(1)(19 downto 4) + LTP_Queue(6)(1)(19 downto 4) + LTP_Queue(7)(1)(19 downto 4);
+										LTP_Display(2)(15 downto 0) <= LTP_Queue(0)(2)(19 downto 4) + LTP_Queue(1)(2)(19 downto 4) + LTP_Queue(2)(2)(19 downto 4) + LTP_Queue(3)(2)(19 downto 4) + LTP_Queue(4)(2)(19 downto 4) + LTP_Queue(5)(2)(19 downto 4) + LTP_Queue(6)(2)(19 downto 4) + LTP_Queue(7)(2)(19 downto 4);
+										LTP_Display(4)(15 downto 0) <= LTP_Queue(0)(4)(19 downto 4) + LTP_Queue(1)(4)(19 downto 4) + LTP_Queue(2)(4)(19 downto 4) + LTP_Queue(3)(4)(19 downto 4) + LTP_Queue(4)(4)(19 downto 4) + LTP_Queue(5)(4)(19 downto 4) + LTP_Queue(6)(4)(19 downto 4) + LTP_Queue(7)(4)(19 downto 4);
+										LTP_Display(8)(15 downto 0) <= LTP_Queue(0)(8)(19 downto 4) + LTP_Queue(1)(8)(19 downto 4) + LTP_Queue(2)(8)(19 downto 4) + LTP_Queue(3)(8)(19 downto 4) + LTP_Queue(4)(8)(19 downto 4) + LTP_Queue(5)(8)(19 downto 4) + LTP_Queue(6)(8)(19 downto 4) + LTP_Queue(7)(8)(19 downto 4);
+										LTP_Display(16)(15 downto 0) <= LTP_Queue(0)(16)(19 downto 4) + LTP_Queue(1)(16)(19 downto 4) + LTP_Queue(2)(16)(19 downto 4) + LTP_Queue(3)(16)(19 downto 4) + LTP_Queue(4)(16)(19 downto 4) + LTP_Queue(5)(16)(19 downto 4) + LTP_Queue(6)(16)(19 downto 4) + LTP_Queue(7)(16)(19 downto 4);
+										LTP_Display(32)(15 downto 0) <= LTP_Queue(0)(32)(19 downto 4) + LTP_Queue(1)(32)(19 downto 4) + LTP_Queue(2)(32)(19 downto 4) + LTP_Queue(3)(32)(19 downto 4) + LTP_Queue(4)(32)(19 downto 4) + LTP_Queue(5)(32)(19 downto 4) + LTP_Queue(6)(32)(19 downto 4) + LTP_Queue(7)(32)(19 downto 4);
+										LTP_Display(64)(15 downto 0) <= LTP_Queue(0)(64)(19 downto 4) + LTP_Queue(1)(64)(19 downto 4) + LTP_Queue(2)(64)(19 downto 4) + LTP_Queue(3)(64)(19 downto 4) + LTP_Queue(4)(64)(19 downto 4) + LTP_Queue(5)(64)(19 downto 4) + LTP_Queue(6)(64)(19 downto 4) + LTP_Queue(7)(64)(19 downto 4);
+										LTP_Display(128)(15 downto 0) <= LTP_Queue(0)(128)(19 downto 4) + LTP_Queue(1)(128)(19 downto 4) + LTP_Queue(2)(128)(19 downto 4) + LTP_Queue(3)(128)(19 downto 4) + LTP_Queue(4)(128)(19 downto 4) + LTP_Queue(5)(128)(19 downto 4) + LTP_Queue(6)(128)(19 downto 4) + LTP_Queue(7)(128)(19 downto 4);
+										
+										
+										-- LTP_Display(1)(7 downto 0) <= LTP_Display(1)(15 downto 8);
+										-- LTP_Display(2)(7 downto 0) <= LTP_Display(2)(15 downto 8);
+										-- LTP_Display(4)(7 downto 0) <= LTP_Display(4)(15 downto 8);
+										-- LTP_Display(8)(7 downto 0) <= LTP_Display(8)(15 downto 8);
+										-- LTP_Display(16)(7 downto 0) <= LTP_Display(16)(15 downto 8);
+										-- LTP_Display(32)(7 downto 0) <= LTP_Display(32)(15 downto 8);
+										-- LTP_Display(64)(7 downto 0) <= LTP_Display(64)(15 downto 8);
+										-- LTP_Display(128)(7 downto 0) <= LTP_Display(128)(15 downto 8);
+										
 										case FrameNumber is
-											when 150 =>
+											when 5 =>
 												DebugEn <= '0';												
 												LTP_Analyze(1) <= (others=>'0');
 												LTP_Analyze(2) <= (others=>'0');
@@ -558,7 +594,7 @@ elsif rising_edge(clk_video) then
 												LTP_Analyze(64)(7 downto 0) <= LTP_Analyze(64)(15 downto 8);	
 												LTP_Analyze(128)(7 downto 0) <= LTP_Analyze(128)(15 downto 8);
 												FrameNumber <= FrameNumber + 1;
-												Display_EN <= not Display_EN;
+												Display_EN <= '1';
 											when 3 =>												
 												Sample_Hand_1 <= CONV_INTEGER(LTP_Analyze(1)(7 downto 0));
 												Sample_Hand_2 <= CONV_INTEGER(LTP_Analyze(2)(7 downto 0));
@@ -570,7 +606,7 @@ elsif rising_edge(clk_video) then
 												Sample_Hand_128 <= CONV_INTEGER(LTP_Analyze(128)(7 downto 0));
 												FrameNumber <= FrameNumber + 1;
 											when 4 =>
-												if ((Sample_Hand_1 > 25 and Sample_Hand_1 < 100) and (Sample_Hand_2 > 25 and Sample_Hand_2 < 100) and (Sample_Hand_4 > 25 and Sample_Hand_4 < 100) and (Sample_Hand_16 > 25 and Sample_Hand_16 < 100) and (Sample_Hand_32 > 25 and Sample_Hand_32 < 100) and (Sample_Hand_64 > 25 and Sample_Hand_64 < 100)) then
+												if ((Sample_Hand_1 > 1 and Sample_Hand_1 < 75) and (Sample_Hand_2 > 1 and Sample_Hand_2 < 75) and (Sample_Hand_4 > 1 and Sample_Hand_4 < 75) and (Sample_Hand_16 > 1 and Sample_Hand_16 < 75) and (Sample_Hand_32 > 1 and Sample_Hand_32 < 75) and (Sample_Hand_64 > 1 and Sample_Hand_64 < 75)) then
 													Sample_Hand_1_Flag <= '1';
 													Sample_Hand_2_Flag <= '1';
 													Sample_Hand_4_Flag <= '1';
@@ -585,12 +621,12 @@ elsif rising_edge(clk_video) then
 													Sample_Hand_32_Flag <= '0';
 													Sample_Hand_64_Flag <= '0';
 												end if;
-												if (Sample_Hand_8 > 200 and Sample_Hand_8 < 480) then
+												if (Sample_Hand_8 > 100 and Sample_Hand_8 < 300) then
 													Sample_Hand_8_Flag <= '1';
 												else
 													Sample_Hand_8_Flag <= '0';
 												end if;
-												if (Sample_Hand_128 > 350 and Sample_Hand_128 < 480) then
+												if (Sample_Hand_128 > 100 and Sample_Hand_128 < 275) then
 													Sample_Hand_128_Flag <= '1';
 												else
 													Sample_Hand_128_Flag <= '0';
@@ -659,19 +695,19 @@ elsif rising_edge(clk_video) then
 								else	
 									-- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ Palm Identify Range of show Result $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ --
 									if((cnt_h_sync_vga > 540 and cnt_h_sync_vga < 580) and(cnt_v_sync_vga > 480-150 and cnt_v_sync_vga < 480)) then 
-										if (Sample_Hand_1_Flag = '1' and Sample_Hand_2_Flag = '1' and Sample_Hand_4_Flag = '1' and Sample_Hand_8_Flag = '0' and Sample_Hand_16_Flag = '1' and Sample_Hand_32_Flag = '1' and Sample_Hand_64_Flag = '1' and Sample_Hand_128_Flag = '1' ) then
+										if (Sample_Hand_1_Flag = '1' and Sample_Hand_2_Flag = '1' and Sample_Hand_4_Flag = '1' and Sample_Hand_8_Flag = '1' and Sample_Hand_16_Flag = '1' and Sample_Hand_32_Flag = '1' and Sample_Hand_64_Flag = '1' and Sample_Hand_128_Flag = '1' ) then
 											r_vga <= "000";
 											g_vga <= "111";
 											b_vga <= "000";
-										elsif (Sample_Hand_1_Flag = '1' and Sample_Hand_2_Flag = '1' and Sample_Hand_4_Flag = '1' and Sample_Hand_8_Flag = '1' and Sample_Hand_16_Flag = '1' and Sample_Hand_32_Flag = '1' and Sample_Hand_64_Flag = '1' and Sample_Hand_128_Flag = '1' ) then
-											r_vga <= "000";
+										else
+											r_vga <= "111";
 											g_vga <= "000";
 											b_vga <= "111";
 										end if;
 									else
 										r_vga <= "111";
-										g_vga <= "000";
-										b_vga <= "000";
+										g_vga <= "111";
+										b_vga <= "111";
 									end if;
 									-- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ Palm Identify Range of show Result $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ --
 									-- r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);

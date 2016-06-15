@@ -1,0 +1,10 @@
+[Inputs]
+Tosc
+clr
+Start
+[Outputs]
+=Dout[7:0]=
+[BiDir]
+[ATTRIBUTES]
+VeriModel VGTA
+

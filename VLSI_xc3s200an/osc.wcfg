@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="C:/Users/BowenHsu/Documents/VideoProcessing/VLSI_xc3s200an/test_osc_isim_beh.wdb" id="1" type="auto">
+         <top_modules>
+            <top_module name="glbl" />
+            <top_module name="test_osc" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <WVObjectSize size="2" />
+   <wvobject fp_name="/test_osc/Tout" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">Tout</obj_property>
+      <obj_property name="ObjectShortName">Tout</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_osc/Start" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">Start</obj_property>
+      <obj_property name="ObjectShortName">Start</obj_property>
+   </wvobject>
+</wave_config>

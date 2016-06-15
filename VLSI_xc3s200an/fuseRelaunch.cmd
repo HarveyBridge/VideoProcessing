@@ -1,0 +1,1 @@
+-intstyle "ise" -incremental -lib "unisims_ver" -lib "unimacro_ver" -lib "xilinxcorelib_ver" -o "C:/Users/BowenHsu/Documents/VideoProcessing/VLSI_xc3s200an/test_VGTA_isim_beh.exe" -prj "C:/Users/BowenHsu/Documents/VideoProcessing/VLSI_xc3s200an/test_VGTA_beh.prj" "work.test_VGTA" "work.glbl" 
