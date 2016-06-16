@@ -265,6 +265,16 @@ paket-files/
 
 # ======================= Xilinx =====================
 # intermediate build files
+*.html
+*.sdb
+*.dbg
+*.dat
+*_1
+*.c
+*.didat
+*.wdb
+*.cmd
+
 *.bgn
 *.bld
 *.cmd_log
