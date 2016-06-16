@@ -1,0 +1,35 @@
+NET "FPGA_clk" LOC = P9;
+NET "clr" LOC = E6;
+NET "Start" LOC = F7;
+NET "LEDin" LOC = F9;
+
+
+NET "Dout[0]" LOC = T11;
+NET "Dout[1]" LOC = T10;
+NET "Dout[2]" LOC = P10;
+NET "Dout[3]" LOC = N10;
+NET "Dout[4]" LOC = M10;
+NET "Dout[5]" LOC = R9;
+NET "Dout[6]" LOC = T9;
+NET "Dout[7]" LOC = N9;
+NET "ScanEn[3]" LOC = R13;
+NET "ScanEn[2]" LOC = P12;
+NET "ScanEn[1]" LOC = P11;
+NET "ScanEn[0]" LOC = N11;
+
+NET "LED[0]" LOC = M14;
+NET "LED[1]" LOC = M13;
+NET "LED[2]" LOC = K13;
+NET "LED[3]" LOC = L13;
+NET "LED[4]" LOC = M16;
+NET "LED[5]" LOC = M15;
+NET "LED[6]" LOC = L16;
+NET "LED[7]" LOC = L14;
+NET "LED[8]" LOC = J13;
+NET "LED[9]" LOC = J12;
+NET "LED[10]" LOC = K14;
+NET "LED[11]" LOC = K15;
+NET "LED[12]" LOC = J16;
+NET "LED[13]" LOC = K16;
+NET "LED[14]" LOC = H14;
+NET "LED[15]" LOC = J14;

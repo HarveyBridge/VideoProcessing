@@ -1,0 +1,34 @@
+NET "FPGA_clk" LOC = P9;
+NET "clr" LOC = E6;
+NET "Start" LOC = F7;
+
+
+NET "Dout[0]" LOC = T11;
+NET "Dout[1]" LOC = T10;
+NET "Dout[2]" LOC = P10;
+NET "Dout[3]" LOC = N10;
+NET "Dout[4]" LOC = M10;
+NET "Dout[5]" LOC = R9;
+NET "Dout[6]" LOC = T9;
+NET "Dout[7]" LOC = N9;
+NET "ScanEn[3]" LOC = R13;
+NET "ScanEn[2]" LOC = P12;
+NET "ScanEn[1]" LOC = P11;
+NET "ScanEn[0]" LOC = N11;
+
+NET "DebugLED[0]" LOC = M14;
+NET "DebugLED[1]" LOC = M13;
+NET "DebugLED[2]" LOC = K13;
+NET "DebugLED[3]" LOC = L13;
+NET "DebugLED[4]" LOC = M16;
+NET "DebugLED[5]" LOC = M15;
+NET "DebugLED[6]" LOC = L16;
+NET "DebugLED[7]" LOC = L14;
+NET "DebugLED[8]" LOC = J13;
+NET "DebugLED[9]" LOC = J12;
+NET "DebugLED[10]" LOC = K14;
+NET "DebugLED[11]" LOC = K15;
+NET "DebugLED[12]" LOC = J16;
+NET "DebugLED[13]" LOC = K16;
+NET "DebugLED[14]" LOC = H14;
+NET "DebugLED[15]" LOC = J14;

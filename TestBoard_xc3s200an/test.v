@@ -4,15 +4,15 @@
 // Company: 
 // Engineer:
 //
-// Create Date:   19:32:20 06/16/2016
-// Design Name:   VGTA
-// Module Name:   C:/Users/BowenHsu/Documents/VideoProcessing/VLSI_xc3s200an/test_VGTA.v
-// Project Name:  VLSI_xc3s200an
+// Create Date:   16:22:02 06/16/2016
+// Design Name:   TestBoard
+// Module Name:   C:/Users/BowenHsu/Documents/VideoProcessing/TestBoard_xc3s200an/test.v
+// Project Name:  TestBoard_xc3s200an
 // Target Device:  
 // Tool versions:  
 // Description: 
 //
-// Verilog Test Fixture created by ISE for module: VGTA
+// Verilog Test Fixture created by ISE for module: TestBoard
 //
 // Dependencies:
 // 
@@ -22,43 +22,41 @@
 // 
 ////////////////////////////////////////////////////////////////////////////////
 
-module test_VGTA;
+module test;
 
 	// Inputs
-	reg Tosc;
-	reg clr;
 	reg Start;
-	reg clk;
+	reg clr;
+	reg LEDin;
+	reg FPGA_clk;
 
 	// Outputs
-	wire [15:0] Cnt;
-	wire LED;
+	wire [3:0] ScanEn;
+	wire [7:0] Dout;
+	wire Tp;
 
 	// Instantiate the Unit Under Test (UUT)
-	VGTA uut (
-		.Tosc(Tosc), 
-		.clr(clr), 
+	TestBoard uut (
 		.Start(Start), 
-		.clk(clk), 
-		.Cnt(Cnt), 
-		.LED(LED)
+		.clr(clr), 
+		.LEDin(LEDin), 
+		.FPGA_clk(FPGA_clk), 
+		.ScanEn(ScanEn), 
+		.Dout(Dout), 
+		.Tp(Tp)
 	);
-initial forever #30 Tosc=~Tosc;
-initial forever #5 clk=~clk;
-
-		
+	initial forever #5 FPGA_clk = ~FPGA_clk;
 	initial begin
 		// Initialize Inputs
-		Tosc = 0;
-		clr = 0;
 		Start = 0;
-		clk = 0;
+		clr = 0;
+		LEDin = 0;
+		FPGA_clk = 0;
 
-		#10 clr = 1'd1;
-		#10 Start = 1'd1;
-		
 		// Wait 100 ns for global reset to finish
-		#1000 $finish;
+		#50 clr = 1'd1;
+		#50 Start = 1'd1; 
+		#10000 $finish;
         
 		// Add stimulus here
 

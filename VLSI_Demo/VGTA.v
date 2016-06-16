@@ -3,7 +3,7 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date:    14:56:43 06/06/2016 
+// Create Date:    21:59:47 06/16/2016 
 // Design Name: 
 // Module Name:    VGTA 
 // Project Name: 
@@ -18,42 +18,49 @@
 // Additional Comments: 
 //
 //////////////////////////////////////////////////////////////////////////////////
-module VGTA(Tosc, clr, Start, clk, Cnt,LED);
-    input Tosc;
-    input clr;
+module VGTA(Start,Tosc,clr,FPGA_clk,Dout,DebugLED);
 	input Start;
-	input clk;
-    output reg [15:0] Cnt;
-	output reg LED;
-	reg Tp = 1'd0;
-	wire Td;
+	input Tosc;
+	input clr;
+	input FPGA_clk;
+	output [15:0] Dout;
+	output [15:0] DebugLED;
+	
+	parameter M = 16'd7000;
+	reg [15:0] Tosc_Cnt = 16'd0;
+	reg [15:0] Cnt;
+	reg [31:0] SwitchCnt = 32'd0;
+	reg Td ;
+	
+	wire Tp ;
 	wire Counter_clk;
-	reg [15:0] Tosc_Cnt;
-	
-	parameter M = 16'd10;
 
-	assign Td = (Tosc_Cnt>M)? 1'd1: 1'd0;
-	assign Counter_clk = Tp & clk;
-	
-always@(posedge clk or negedge clr)
+	assign Counter_clk = Tp & FPGA_clk;
+	assign Tp = Start^Td;
+	assign Dout = Cnt;
+	assign DebugLED[15:3] = Cnt[15:3];
+	assign DebugLED[2] = Counter_clk;
+	assign DebugLED[1] = Td;
+	assign DebugLED[0] = Tp;
+
+always@(posedge Tosc or negedge clr)
 begin
-	if(~clr)
+	if(~clr) begin
 		Tosc_Cnt <= 16'd0;
-	else
-		Tosc_Cnt <= Tosc_Cnt + 1'd1;
+		Td <= 1'd0;
+	end
+	else begin		
+		if(Tosc_Cnt<M) begin
+			Tosc_Cnt <= Tosc_Cnt + 1'd1;
+			Td <= 1'd0;
+		end
+		else if(Tosc_Cnt>=M) begin
+			Tosc_Cnt <= Tosc_Cnt; 
+			Td <= 1'd1;		
+		end
+	end
 end
 
-always@(posedge Start or posedge Td)
-begin
-	if(Start) begin
-		if(Td)
-			Tp <= 1'd0;
-		else
-			Tp <= 1'd1;
-	end
-	else
-		Tp <= 1'd0;
-end
 
 always@(posedge Counter_clk or negedge clr)
 begin
@@ -81,6 +88,4 @@ begin
 			Cnt[3:0] <= Cnt[3:0] + 1'd1;
 	end
 end
-
-
 endmodule
