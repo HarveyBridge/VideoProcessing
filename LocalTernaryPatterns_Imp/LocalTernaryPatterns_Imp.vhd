@@ -49,7 +49,6 @@ component video_in
             v_sync_vga : out  std_logic;
             h_sync_vga : out  std_logic
         );
-
 end component;
 
 component i2c
@@ -60,6 +59,27 @@ component i2c
             sda : inout std_logic
          );
 
+end component;
+
+component BufferToMatrix3x3 is
+	Port(
+			clk_video	: in std_logic;
+			rst_system	: in std_logic;
+			data_video 	: in std_logic_vector(7 downto 0);
+			buf_vga_en	: in std_logic;	
+			buf_data_state: in std_logic_vector(1 downto 0);
+			cnt_video_hsync : in  integer range 0 to 1715;
+			Matrix_R1C1	: buffer std_logic_vector(10-1 downto 0);
+			Matrix_R2C1	: buffer std_logic_vector(10-1 downto 0);
+			Matrix_R3C1	: buffer std_logic_vector(10-1 downto 0);
+			Matrix_R1C2	: buffer std_logic_vector(10-1 downto 0);
+			Matrix_R2C2	: buffer std_logic_vector(10-1 downto 0);
+			Matrix_R3C2	: buffer std_logic_vector(10-1 downto 0);
+			Matrix_R1C3	: buffer std_logic_vector(10-1 downto 0);
+			Matrix_R2C3	: buffer std_logic_vector(10-1 downto 0);
+			Matrix_R3C3	: buffer std_logic_vector(10-1 downto 0);
+			Matrix_Buf_Cnt	 : buffer integer range 0 to 639:=0
+		);
 end component;
 --########## Component Defination ###################################################################################--	
 
@@ -145,7 +165,10 @@ signal SB_buf_switch : std_logic:='0';
 ----------|
 --SB End--|
 ----------|
-
+type Analyze_Buf is array (integer range 0 to 255) of std_logic_vector ((16-1) downto 0);
+type Analyze_Temp_Buf is array (integer range 0 to 8-1) of std_logic_vector ((16-1) downto 0);
+type Analyze_Queue_buf is array (integer range 0 to 255) of std_logic_vector ((32-1) downto 0);
+type Analyze_Queue is array (integer range 0 to 7) of Analyze_Queue_buf;
 --############################################### Matrix Expression ###############################################--
 --			 Col-1   Col-2  Col-3
 --			[ R1C1 , R1C2 , R1C3 ]
@@ -173,9 +196,11 @@ signal Matrix_R3C3 : std_logic_vector((10-1) downto 0):="0000000000";
 
 signal Matrix_Buf_Cnt	 : integer range 0 to 639:=0;
 signal Matrix_Buf_Length_Max : integer range 0 to 639:=639;
+
 -----------------------------------|
 --LTP Edge Matrix = Matrix Buffer--|
 -----------------------------------|
+--## Buffer Using ##--
 signal LTP_Edge_Column_1 : Matrix_Buf;
 signal LTP_Edge_R1C1 : std_logic_vector((10-1) downto 0):="0000000000";
 signal LTP_Edge_R2C1 : std_logic_vector((10-1) downto 0):="0000000000";
@@ -194,8 +219,77 @@ signal LTP_Edge_R3C3 : std_logic_vector((10-1) downto 0):="0000000000";
 signal LTP_Edge_Buf_Cnt	 : integer range 0 to 639:=0;
 signal LTP_Edge_Buf_Length_Max : integer range 0 to 639:=639;
 
---signal R2C2_Encode_Bit			: std_logic_vector(7 downto 0);
---signal R2C2_Encode_Bit2			: std_logic_vector(7 downto 0);
+--## Calculate Using ##--
+signal LTP_Edge_Cnt				: integer range 0 to 639:=0;
+signal LTP_Edge_R2C2_Encode 	: std_logic_vector(7 downto 0);
+signal LTP_Edge_R2C2_Encode_Bit	: std_logic_vector(7 downto 0);
+signal LTP_Edge_R2C2_Encode_Bit2: std_logic_vector(7 downto 0);
+signal LTP_Edge_Value			: Matrix_Buf;
+signal LTP_Edge_Analyze			: Analyze_Buf;
+
+------------------------------------|
+--LTP Edge2 Matrix = Matrix Buffer--|
+------------------------------------|
+--## Buffer Using ##--
+signal LTP_Edge2_Column_1 : Matrix_Buf;
+signal LTP_Edge2_R1C1 : std_logic_vector((10-1) downto 0):="0000000000";
+signal LTP_Edge2_R2C1 : std_logic_vector((10-1) downto 0):="0000000000";
+signal LTP_Edge2_R3C1 : std_logic_vector((10-1) downto 0):="0000000000";
+
+signal LTP_Edge2_Column_2 : Matrix_Buf;
+signal LTP_Edge2_R1C2 : std_logic_vector((10-1) downto 0):="0000000000";
+signal LTP_Edge2_R2C2 : std_logic_vector((10-1) downto 0):="0000000000";
+signal LTP_Edge2_R3C2 : std_logic_vector((10-1) downto 0):="0000000000";
+
+signal LTP_Edge2_Column_3 : Matrix_Buf;
+signal LTP_Edge2_R1C3 : std_logic_vector((10-1) downto 0):="0000000000";
+signal LTP_Edge2_R2C3 : std_logic_vector((10-1) downto 0):="0000000000";
+signal LTP_Edge2_R3C3 : std_logic_vector((10-1) downto 0):="0000000000";
+
+signal LTP_Edge2_Buf_Cnt	 : integer range 0 to 639:=0;
+signal LTP_Edge2_Buf_Length_Max : integer range 0 to 639:=639;
+
+--## Calculate Using ##--
+signal LTP_Edge2_Cnt				: integer range 0 to 639:=0;
+signal LTP_Edge2_R2C2_Encode 		: std_logic_vector(7 downto 0);
+signal LTP_Edge2_R2C2_Encode_Bit	: std_logic_vector(7 downto 0);
+signal LTP_Edge2_R2C2_Encode_Bit2	: std_logic_vector(7 downto 0);
+signal LTP_Edge2_Value				: Matrix_Buf;
+signal LTP_Edge2_Analyze			: Analyze_Buf;
+
+------------------------------------|
+--LTP Edge3 Matrix = Matrix Buffer--|
+------------------------------------|
+--## Buffer Using ##--
+signal LTP_Edge3_Column_1 : Matrix_Buf;
+signal LTP_Edge3_R1C1 : std_logic_vector((10-1) downto 0):="0000000000";
+signal LTP_Edge3_R2C1 : std_logic_vector((10-1) downto 0):="0000000000";
+signal LTP_Edge3_R3C1 : std_logic_vector((10-1) downto 0):="0000000000";
+
+signal LTP_Edge3_Column_2 : Matrix_Buf;
+signal LTP_Edge3_R1C2 : std_logic_vector((10-1) downto 0):="0000000000";
+signal LTP_Edge3_R2C2 : std_logic_vector((10-1) downto 0):="0000000000";
+signal LTP_Edge3_R3C2 : std_logic_vector((10-1) downto 0):="0000000000";
+
+signal LTP_Edge3_Column_3 : Matrix_Buf;
+signal LTP_Edge3_R1C3 : std_logic_vector((10-1) downto 0):="0000000000";
+signal LTP_Edge3_R2C3 : std_logic_vector((10-1) downto 0):="0000000000";
+signal LTP_Edge3_R3C3 : std_logic_vector((10-1) downto 0):="0000000000";
+
+signal LTP_Edge3_Buf_Cnt	 : integer range 0 to 639:=0;
+signal LTP_Edge3_Buf_Length_Max : integer range 0 to 639:=639;
+
+--## Calculate Using ##--
+signal LTP_Edge3_Cnt				: integer range 0 to 639:=0;
+signal LTP_Edge3_R2C2_Encode 		: std_logic_vector(7 downto 0);
+signal LTP_Edge3_R2C2_Encode_Bit	: std_logic_vector(7 downto 0);
+signal LTP_Edge3_R2C2_Encode_Bit2	: std_logic_vector(7 downto 0);
+signal LTP_Edge3_Value				: Matrix_Buf;
+signal LTP_Edge3_Analyze			: Analyze_Buf;
+
+
+
+
 ------------------------------|
 -- End of LBP Matrix = Matrix Buffer--|
 ------------------------------|
@@ -204,10 +298,7 @@ signal boundary_edge_V : integer range 0 to 639:=300; -- 100 to 300
 ------------------|
 --LTP Calculate --|
 ------------------|
-type Analyze_Buf is array (integer range 0 to 255) of std_logic_vector ((16-1) downto 0);
-type Analyze_Temp_Buf is array (integer range 0 to 8-1) of std_logic_vector ((16-1) downto 0);
-type Analyze_Queue_buf is array (integer range 0 to 255) of std_logic_vector ((32-1) downto 0);
-type Analyze_Queue is array (integer range 0 to 7) of Analyze_Queue_buf;
+
 
 signal R2C2_Encode 				: std_logic_vector(7 downto 0);
 signal R2C2_Encode_Threshold	: std_logic_vector(7 downto 0):="00001111";
@@ -316,6 +407,49 @@ i2c_1 :i2c
                 scl => scl,
                 sda => sda           
 			);
+
+LTP_Edge2_BTM3x3 : BufferToMatrix3x3
+	port map (
+		clk_video 		=> clk_video,
+		rst_system 		=> rst_system,		
+		buf_vga_en 		=> buf_vga_en,
+		buf_data_state 	=> buf_data_state,
+		cnt_video_hsync => cnt_video_hsync,
+
+		data_video 		=> LTP_Edge_Value(LTP_Edge_Cnt)(7 downto 0),
+		Matrix_R1C1 	=> LTP_Edge2_R1C1,
+		Matrix_R2C1 	=> LTP_Edge2_R2C1,
+		Matrix_R3C1 	=> LTP_Edge2_R3C1,
+		Matrix_R1C2 	=> LTP_Edge2_R1C2,
+		Matrix_R2C2 	=> LTP_Edge2_R2C2,
+		Matrix_R3C2 	=> LTP_Edge2_R3C2,
+		Matrix_R1C3 	=> LTP_Edge2_R1C3,
+		Matrix_R2C3 	=> LTP_Edge2_R2C3,
+		Matrix_R3C3 	=> LTP_Edge2_R3C3,
+		Matrix_Buf_Cnt 	=> LTP_Edge2_Buf_Cnt
+		);
+
+LTP_Edge3_BTM3x3 : BufferToMatrix3x3
+	port map (
+		clk_video 		=> clk_video,
+		rst_system 		=> rst_system,		
+		buf_vga_en 		=> buf_vga_en,
+		buf_data_state 	=> buf_data_state,
+		cnt_video_hsync => cnt_video_hsync,
+
+		data_video 		=> LTP_Edge2_Value(LTP_Edge2_Cnt)(7 downto 0),
+		Matrix_R1C1 	=> LTP_Edge3_R1C1,
+		Matrix_R2C1 	=> LTP_Edge3_R2C1,
+		Matrix_R3C1 	=> LTP_Edge3_R3C1,
+		Matrix_R1C2 	=> LTP_Edge3_R1C2,
+		Matrix_R2C2 	=> LTP_Edge3_R2C2,
+		Matrix_R3C2 	=> LTP_Edge3_R3C2,
+		Matrix_R1C3 	=> LTP_Edge3_R1C3,
+		Matrix_R2C3 	=> LTP_Edge3_R2C3,
+		Matrix_R3C3 	=> LTP_Edge3_R3C3,
+		Matrix_Buf_Cnt 	=> LTP_Edge3_Buf_Cnt
+		);
+
 --########## Component Defination ###################################################################################--			
 buf_vga_Y(buf_vga_Y_in_cnt)<= buf_vga_Y_buf ;
 
@@ -696,116 +830,13 @@ elsif rising_edge(clk_video) then
 									b_vga <= "000";
 								else
 									-- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ Inner Special Range 150x200 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ --
-									r_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
-									g_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
-									b_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
-									--if DebugEn = '0' then
-									--	LTP_Analyze(CONV_INTEGER(LTP_Value(buf_vga_Y_out_cnt)(7 downto 0))) <= LTP_Analyze(CONV_INTEGER(LTP_Value(buf_vga_Y_out_cnt)(7 downto 0))) + '1';	
-									--	LTP_Div_Character <= LTP_Analyze(1) + LTP_Analyze(2) + LTP_Analyze(4) + LTP_Analyze(8) + LTP_Analyze(16) + LTP_Analyze(32) + LTP_Analyze(64) + LTP_Analyze(128) ;
-									--	LTP_Character <= LTP_Div_Character(10 downto 3);
-									--end if;
-									--if FrameCnt = 30000 then
-									--	FrameCnt <= 0;	
+									--r_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+									--g_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+									--b_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+									r_vga <= LTP_Edge3_Value(buf_vga_Y_out_cnt)(7 downto 5);
+									g_vga <= LTP_Edge3_Value(buf_vga_Y_out_cnt)(7 downto 5);
+									b_vga <= LTP_Edge3_Value(buf_vga_Y_out_cnt)(7 downto 5);
 
-									--	LTP_Queue_Cnt <= LTP_Queue_Cnt + 1;
-									--	LTP_Queue(LTP_Queue_Cnt)(1)(15 downto 0) <= LTP_Analyze(1)(15 downto 0);
-									--	LTP_Queue(LTP_Queue_Cnt)(2)(15 downto 0) <= LTP_Analyze(2)(15 downto 0);
-									--	LTP_Queue(LTP_Queue_Cnt)(4)(15 downto 0) <= LTP_Analyze(4)(15 downto 0);
-									--	LTP_Queue(LTP_Queue_Cnt)(8)(15 downto 0) <= LTP_Analyze(8)(15 downto 0);
-									--	LTP_Queue(LTP_Queue_Cnt)(16)(15 downto 0) <= LTP_Analyze(16)(15 downto 0);
-									--	LTP_Queue(LTP_Queue_Cnt)(32)(15 downto 0) <= LTP_Analyze(32)(15 downto 0);
-									--	LTP_Queue(LTP_Queue_Cnt)(64)(15 downto 0) <= LTP_Analyze(64)(15 downto 0);
-									--	LTP_Queue(LTP_Queue_Cnt)(128)(15 downto 0) <= LTP_Analyze(128)(15 downto 0);
-									--	LTP_Display(1)(15 downto 0) <= LTP_Queue(0)(1)(19 downto 4) + LTP_Queue(1)(1)(19 downto 4) + LTP_Queue(2)(1)(19 downto 4) + LTP_Queue(3)(1)(19 downto 4) + LTP_Queue(4)(1)(19 downto 4) + LTP_Queue(5)(1)(19 downto 4) + LTP_Queue(6)(1)(19 downto 4) + LTP_Queue(7)(1)(19 downto 4);
-									--	LTP_Display(2)(15 downto 0) <= LTP_Queue(0)(2)(19 downto 4) + LTP_Queue(1)(2)(19 downto 4) + LTP_Queue(2)(2)(19 downto 4) + LTP_Queue(3)(2)(19 downto 4) + LTP_Queue(4)(2)(19 downto 4) + LTP_Queue(5)(2)(19 downto 4) + LTP_Queue(6)(2)(19 downto 4) + LTP_Queue(7)(2)(19 downto 4);
-									--	LTP_Display(4)(15 downto 0) <= LTP_Queue(0)(4)(19 downto 4) + LTP_Queue(1)(4)(19 downto 4) + LTP_Queue(2)(4)(19 downto 4) + LTP_Queue(3)(4)(19 downto 4) + LTP_Queue(4)(4)(19 downto 4) + LTP_Queue(5)(4)(19 downto 4) + LTP_Queue(6)(4)(19 downto 4) + LTP_Queue(7)(4)(19 downto 4);
-									--	LTP_Display(8)(15 downto 0) <= LTP_Queue(0)(8)(19 downto 4) + LTP_Queue(1)(8)(19 downto 4) + LTP_Queue(2)(8)(19 downto 4) + LTP_Queue(3)(8)(19 downto 4) + LTP_Queue(4)(8)(19 downto 4) + LTP_Queue(5)(8)(19 downto 4) + LTP_Queue(6)(8)(19 downto 4) + LTP_Queue(7)(8)(19 downto 4);
-									--	LTP_Display(16)(15 downto 0) <= LTP_Queue(0)(16)(19 downto 4) + LTP_Queue(1)(16)(19 downto 4) + LTP_Queue(2)(16)(19 downto 4) + LTP_Queue(3)(16)(19 downto 4) + LTP_Queue(4)(16)(19 downto 4) + LTP_Queue(5)(16)(19 downto 4) + LTP_Queue(6)(16)(19 downto 4) + LTP_Queue(7)(16)(19 downto 4);
-									--	LTP_Display(32)(15 downto 0) <= LTP_Queue(0)(32)(19 downto 4) + LTP_Queue(1)(32)(19 downto 4) + LTP_Queue(2)(32)(19 downto 4) + LTP_Queue(3)(32)(19 downto 4) + LTP_Queue(4)(32)(19 downto 4) + LTP_Queue(5)(32)(19 downto 4) + LTP_Queue(6)(32)(19 downto 4) + LTP_Queue(7)(32)(19 downto 4);
-									--	LTP_Display(64)(15 downto 0) <= LTP_Queue(0)(64)(19 downto 4) + LTP_Queue(1)(64)(19 downto 4) + LTP_Queue(2)(64)(19 downto 4) + LTP_Queue(3)(64)(19 downto 4) + LTP_Queue(4)(64)(19 downto 4) + LTP_Queue(5)(64)(19 downto 4) + LTP_Queue(6)(64)(19 downto 4) + LTP_Queue(7)(64)(19 downto 4);
-									--	LTP_Display(128)(15 downto 0) <= LTP_Queue(0)(128)(19 downto 4) + LTP_Queue(1)(128)(19 downto 4) + LTP_Queue(2)(128)(19 downto 4) + LTP_Queue(3)(128)(19 downto 4) + LTP_Queue(4)(128)(19 downto 4) + LTP_Queue(5)(128)(19 downto 4) + LTP_Queue(6)(128)(19 downto 4) + LTP_Queue(7)(128)(19 downto 4);
-										
-										
-									--	-- LTP_Display(1)(7 downto 0) <= LTP_Display(1)(15 downto 8);
-									--	-- LTP_Display(2)(7 downto 0) <= LTP_Display(2)(15 downto 8);
-									--	-- LTP_Display(4)(7 downto 0) <= LTP_Display(4)(15 downto 8);
-									--	-- LTP_Display(8)(7 downto 0) <= LTP_Display(8)(15 downto 8);
-									--	-- LTP_Display(16)(7 downto 0) <= LTP_Display(16)(15 downto 8);
-									--	-- LTP_Display(32)(7 downto 0) <= LTP_Display(32)(15 downto 8);
-									--	-- LTP_Display(64)(7 downto 0) <= LTP_Display(64)(15 downto 8);
-									--	-- LTP_Display(128)(7 downto 0) <= LTP_Display(128)(15 downto 8);
-										
-									--	case FrameNumber is
-									--		when 5 =>
-									--			DebugEn <= '0';												
-									--			LTP_Analyze(1) <= (others=>'0');
-									--			LTP_Analyze(2) <= (others=>'0');
-									--			LTP_Analyze(4) <= (others=>'0');
-									--			LTP_Analyze(8) <= (others=>'0');
-									--			LTP_Analyze(16) <= (others=>'0');
-									--			LTP_Analyze(32) <= (others=>'0');
-									--			LTP_Analyze(64) <= (others=>'0');
-									--			LTP_Analyze(128) <= (others=>'0');
-									--			FrameNumber <= 0;
-									--		when 2 =>
-									--			LTP_Analyze(1)(7 downto 0) <= LTP_Analyze(1)(15 downto 8);	
-									--			LTP_Analyze(2)(7 downto 0) <= LTP_Analyze(2)(15 downto 8);	
-									--			LTP_Analyze(4)(7 downto 0) <= LTP_Analyze(4)(15 downto 8);	
-									--			LTP_Analyze(8)(7 downto 0) <= LTP_Analyze(8)(15 downto 8);	
-									--			LTP_Analyze(16)(7 downto 0) <= LTP_Analyze(16)(15 downto 8);	
-									--			LTP_Analyze(32)(7 downto 0) <= LTP_Analyze(32)(15 downto 8);	
-									--			LTP_Analyze(64)(7 downto 0) <= LTP_Analyze(64)(15 downto 8);	
-									--			LTP_Analyze(128)(7 downto 0) <= LTP_Analyze(128)(15 downto 8);
-									--			FrameNumber <= FrameNumber + 1;
-									--			Display_EN <= '1';
-									--		when 3 =>												
-									--			Sample_Hand_1 <= CONV_INTEGER(LTP_Analyze(1)(7 downto 0));
-									--			Sample_Hand_2 <= CONV_INTEGER(LTP_Analyze(2)(7 downto 0));
-									--			Sample_Hand_4 <= CONV_INTEGER(LTP_Analyze(4)(7 downto 0));
-									--			Sample_Hand_8 <= CONV_INTEGER(LTP_Analyze(8)(7 downto 0));
-									--			Sample_Hand_16 <= CONV_INTEGER(LTP_Analyze(16)(7 downto 0));
-									--			Sample_Hand_32 <= CONV_INTEGER(LTP_Analyze(32)(7 downto 0));
-									--			Sample_Hand_64 <= CONV_INTEGER(LTP_Analyze(64)(7 downto 0));
-									--			Sample_Hand_128 <= CONV_INTEGER(LTP_Analyze(128)(7 downto 0));
-									--			FrameNumber <= FrameNumber + 1;
-									--		when 4 =>
-									--			if ((Sample_Hand_1 > 1 and Sample_Hand_1 < 75) and (Sample_Hand_2 > 1 and Sample_Hand_2 < 75) and (Sample_Hand_4 > 1 and Sample_Hand_4 < 75) and (Sample_Hand_16 > 1 and Sample_Hand_16 < 75) and (Sample_Hand_32 > 1 and Sample_Hand_32 < 75) and (Sample_Hand_64 > 1 and Sample_Hand_64 < 75)) then
-									--				Sample_Hand_1_Flag <= '1';
-									--				Sample_Hand_2_Flag <= '1';
-									--				Sample_Hand_4_Flag <= '1';
-									--				Sample_Hand_16_Flag <= '1';
-									--				Sample_Hand_32_Flag <= '1';
-									--				Sample_Hand_64_Flag <= '1';
-									--			else
-									--				Sample_Hand_1_Flag <= '0';
-									--				Sample_Hand_2_Flag <= '0';
-									--				Sample_Hand_4_Flag <= '0';
-									--				Sample_Hand_16_Flag <= '0';
-									--				Sample_Hand_32_Flag <= '0';
-									--				Sample_Hand_64_Flag <= '0';
-									--			end if;
-									--			if (Sample_Hand_8 > 100 and Sample_Hand_8 < 300) then
-									--				Sample_Hand_8_Flag <= '1';
-									--			else
-									--				Sample_Hand_8_Flag <= '0';
-									--			end if;
-									--			if (Sample_Hand_128 > 100 and Sample_Hand_128 < 275) then
-									--				Sample_Hand_128_Flag <= '1';
-									--			else
-									--				Sample_Hand_128_Flag <= '0';
-									--			end if;
-									--			FrameNumber <= FrameNumber + 1;
-									--		when others =>
-									--			if FrameNumber < 2 then
-									--				FrameNumber <= FrameNumber + 1;
-									--			else
-									--				FrameNumber <= FrameNumber + 1;
-									--				DebugEn <= '1';
-									--			end if;
-									--	end case;
-									--else
-									--	FrameCnt <= FrameCnt + 1;
-									--end if;
 									-- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ Inner Special Range 150x200 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ --
 								end if;
 							end if;
@@ -931,9 +962,12 @@ elsif rising_edge(clk_video) then
 									-- b_vga <= "111";
 								-- end if;
 							else
-								r_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
-								g_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
-								b_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+								--r_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+								--g_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+								--b_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+								r_vga <= LTP_Edge3_Value(buf_vga_Y_out_cnt)(7 downto 5);
+								g_vga <= LTP_Edge3_Value(buf_vga_Y_out_cnt)(7 downto 5);
+								b_vga <= LTP_Edge3_Value(buf_vga_Y_out_cnt)(7 downto 5);								
 							end if;				
 						end if;
 					end if;
@@ -1215,129 +1249,449 @@ end process LTP_EdgeBufferMatrix;
 --############################################### LTP_Edge Buffer Matrix ###############################################--
 
 --############################################### LTP_Edge to LTP Calculate ###############################################--
---LTP_Edge_LTP_Calculate:process(rst_system, clk_video)
---variable R2C2_Encode_Reg_U	: std_logic_vector(9 downto 0);
---variable R2C2_Encode_Reg_D	: std_logic_vector(9 downto 0);
+LTP_Edge_LTP_Calculate:process(rst_system, clk_video)
+variable LTP_Edge_R2C2_Encode_Reg_U	: std_logic_vector(9 downto 0);
+variable LTP_Edge_R2C2_Encode_Reg_D	: std_logic_vector(9 downto 0);
+begin
+if rst_system = '0' then
+	LTP_Edge_R2C2_Encode <= (others =>'0');
+	LTP_Edge_R2C2_Encode_Bit <= (others =>'0');
+	LTP_Edge_R2C2_Encode_Bit2<= (others =>'0');
+	LTP_Edge_Cnt <= 0;
+else
+	if rising_edge(clk_video) then
+		if buf_sobel_cc_en = '1' then
+			if Sobel_Cal_en = '1' then
+			-- if buf_data_state(0) = '0' then
+				LTP_Edge_R2C2_Encode_Reg_U := LTP_Edge_R2C2 + R2C2_Encode_Threshold ;
+				LTP_Edge_R2C2_Encode_Reg_D := LTP_Edge_R2C2 - R2C2_Encode_Threshold ;
+
+				if LTP_Edge_R1C1 > LTP_Edge_R2C2_Encode_Reg_U then
+					LTP_Edge_R2C2_Encode_Bit(7) <= '1';
+					LTP_Edge_R2C2_Encode_Bit2(7) <= '0';
+				elsif LTP_Edge_R1C1 < LTP_Edge_R2C2_Encode_Reg_D then
+					LTP_Edge_R2C2_Encode_Bit(7) <= '0';
+					LTP_Edge_R2C2_Encode_Bit2(7) <= '1';
+				else 
+					LTP_Edge_R2C2_Encode_Bit(7) <= '0';
+					LTP_Edge_R2C2_Encode_Bit2(7) <= '0';
+				end if;
+				if LTP_Edge_R2C1 > LTP_Edge_R2C2_Encode_Reg_U then
+					LTP_Edge_R2C2_Encode_Bit(6) <= '1';
+					LTP_Edge_R2C2_Encode_Bit2(6) <= '0';
+				elsif LTP_Edge_R2C1 < LTP_Edge_R2C2_Encode_Reg_D then
+					LTP_Edge_R2C2_Encode_Bit(6) <= '0';
+					LTP_Edge_R2C2_Encode_Bit2(6) <= '1';
+				else 
+					LTP_Edge_R2C2_Encode_Bit(6) <= '0';
+					LTP_Edge_R2C2_Encode_Bit2(6) <= '0';
+				end if;
+				if LTP_Edge_R3C1 > LTP_Edge_R2C2_Encode_Reg_U then
+					LTP_Edge_R2C2_Encode_Bit(5) <= '1';
+					LTP_Edge_R2C2_Encode_Bit2(5) <= '0';
+				elsif LTP_Edge_R3C1 < LTP_Edge_R2C2_Encode_Reg_D then
+					LTP_Edge_R2C2_Encode_Bit(5) <= '0';
+					LTP_Edge_R2C2_Encode_Bit2(5) <= '1';
+				else 
+					LTP_Edge_R2C2_Encode_Bit(5) <= '0';
+					LTP_Edge_R2C2_Encode_Bit2(5) <= '0';
+				end if;
+				if LTP_Edge_R3C2 > LTP_Edge_R2C2_Encode_Reg_U then
+					LTP_Edge_R2C2_Encode_Bit(4) <= '1';
+					LTP_Edge_R2C2_Encode_Bit2(4) <= '0';
+				elsif LTP_Edge_R3C2 < LTP_Edge_R2C2_Encode_Reg_D then
+					LTP_Edge_R2C2_Encode_Bit(4) <= '0';
+					LTP_Edge_R2C2_Encode_Bit2(4) <= '1';
+				else 
+					LTP_Edge_R2C2_Encode_Bit(4) <= '0';
+					LTP_Edge_R2C2_Encode_Bit2(4) <= '0';
+				end if;
+				if LTP_Edge_R3C3 > LTP_Edge_R2C2_Encode_Reg_U then
+					LTP_Edge_R2C2_Encode_Bit(3) <= '1';
+					LTP_Edge_R2C2_Encode_Bit2(3) <= '0';
+				elsif LTP_Edge_R3C3 < LTP_Edge_R2C2_Encode_Reg_D then
+					LTP_Edge_R2C2_Encode_Bit(3) <= '0';
+					LTP_Edge_R2C2_Encode_Bit2(3) <= '1';
+				else 
+					LTP_Edge_R2C2_Encode_Bit(3) <= '0';
+					LTP_Edge_R2C2_Encode_Bit2(3) <= '0';
+				end if;
+				if LTP_Edge_R2C3 > LTP_Edge_R2C2_Encode_Reg_U then
+					LTP_Edge_R2C2_Encode_Bit(2) <= '1';
+					LTP_Edge_R2C2_Encode_Bit2(2) <= '0';
+				elsif LTP_Edge_R2C3 < LTP_Edge_R2C2_Encode_Reg_D then
+					LTP_Edge_R2C2_Encode_Bit(2) <= '0';
+					LTP_Edge_R2C2_Encode_Bit2(2) <= '1';
+				else 
+					LTP_Edge_R2C2_Encode_Bit(2) <= '0';
+					LTP_Edge_R2C2_Encode_Bit2(2) <= '0';
+				end if;
+				if LTP_Edge_R1C3 > LTP_Edge_R2C2_Encode_Reg_U then
+					LTP_Edge_R2C2_Encode_Bit(1) <= '1';
+					LTP_Edge_R2C2_Encode_Bit2(1) <= '0';
+				elsif LTP_Edge_R1C3 < LTP_Edge_R2C2_Encode_Reg_D then
+					LTP_Edge_R2C2_Encode_Bit(1) <= '0';
+					LTP_Edge_R2C2_Encode_Bit2(1) <= '1';
+				else 
+					LTP_Edge_R2C2_Encode_Bit(1) <= '0';
+					LTP_Edge_R2C2_Encode_Bit2(1) <= '0';
+				end if;
+				if LTP_Edge_R1C2 > LTP_Edge_R2C2_Encode_Reg_U then
+					LTP_Edge_R2C2_Encode_Bit(0) <= '1';
+					LTP_Edge_R2C2_Encode_Bit2(0) <= '0';
+				elsif LTP_Edge_R1C2 < LTP_Edge_R2C2_Encode_Reg_D then
+					LTP_Edge_R2C2_Encode_Bit(0) <= '0';
+					LTP_Edge_R2C2_Encode_Bit2(0) <= '1';
+				else 
+					LTP_Edge_R2C2_Encode_Bit(0) <= '0';
+					LTP_Edge_R2C2_Encode_Bit2(0) <= '0';
+				end if;
+
+			else
+				if ImageSelect = '0' then
+					LTP_Edge_R2C2_Encode <= LTP_Edge_R2C2_Encode_Bit;
+				else
+					LTP_Edge_R2C2_Encode <= LTP_Edge_R2C2_Encode_Bit2;
+				end if;
+				--if ImageSelect = '0' then
+				--	LTP_Edge_R2C2_Encode <= LTP_Edge_R2C2_Encode_Bit and LTP_Edge_R2C2_Encode_Bit2;
+				--else
+				--	LTP_Edge_R2C2_Encode <= LTP_Edge_R2C2_Encode_Bit xor LTP_Edge_R2C2_Encode_Bit2;					
+				--end if;
+				LTP_Edge_Value(LTP_Edge_Cnt) <= LTP_Edge_R2C2_Encode;
+				if LTP_Edge_Cnt < 639 then
+					LTP_Edge_Cnt <= LTP_Edge_Cnt + 1;
+				else
+					LTP_Edge_Cnt <= 0;
+				end if;
+
+			end if;
+		else
+			LTP_Edge_R2C2_Encode <= (others =>'0');
+			LTP_Edge_R2C2_Encode_Bit <= (others =>'0');
+-- when cnt_video_hsync > 1280, let redata_cnt be reset
+			LTP_Edge_Cnt <= 0;
+		end if;
+	end if;
+end if;
+end process LTP_Edge_LTP_Calculate;
+--############################################### LTP_Edge to LTP Calculate ###############################################--
+
+
+--############################################### LTP_Edge2 Buffer Matrix ###############################################--
+--LTP_Edge2BufferMatrix:process(rst_system, clk_video)
 --begin
 --if rst_system = '0' then
---	R2C2_Encode <= (others =>'0');
---	R2C2_Encode_Bit <= (others =>'0');
---	R2C2_Encode_Bit2<= (others =>'0');
---	LTP_Cnt <= 0;
+--	LTP_Edge2_R1C1 <= "0000000000";
+--	LTP_Edge2_R2C1 <= "0000000000";
+--	LTP_Edge2_R3C1 <= "0000000000";
+	
+--	LTP_Edge2_R1C2 <= "0000000000";
+--	LTP_Edge2_R2C2 <= "0000000000";
+--	LTP_Edge2_R3C2 <= "0000000000";
+	
+--	LTP_Edge2_R1C3 <= "0000000000";
+--	LTP_Edge2_R2C3 <= "0000000000";
+--	LTP_Edge2_R3C3 <= "0000000000";
+--	LTP_Edge2_Buf_Cnt <= 0;
+
 --else
 --	if rising_edge(clk_video) then
---		if buf_sobel_cc_en = '1' then
---			if Sobel_Cal_en = '1' then
---			-- if buf_data_state(0) = '0' then
---				R2C2_Encode_Reg_U := LTP_Edge_R2C2 + R2C2_Encode_Threshold ;
---				R2C2_Encode_Reg_D := LTP_Edge_R2C2 - R2C2_Encode_Threshold ;
-
---				if LTP_Edge_R1C1 > R2C2_Encode_Reg_U then
---					R2C2_Encode_Bit(7) <= '1';
---					R2C2_Encode_Bit2(7) <= '0';
---				elsif LTP_Edge_R1C1 < R2C2_Encode_Reg_D then
---					R2C2_Encode_Bit(7) <= '0';
---					R2C2_Encode_Bit2(7) <= '1';
---				else 
---					R2C2_Encode_Bit(7) <= '0';
---					R2C2_Encode_Bit2(7) <= '0';
---				end if;
---				if LTP_Edge_R2C1 > R2C2_Encode_Reg_U then
---					R2C2_Encode_Bit(6) <= '1';
---					R2C2_Encode_Bit2(6) <= '0';
---				elsif LTP_Edge_R2C1 < R2C2_Encode_Reg_D then
---					R2C2_Encode_Bit(6) <= '0';
---					R2C2_Encode_Bit2(6) <= '1';
---				else 
---					R2C2_Encode_Bit(6) <= '0';
---					R2C2_Encode_Bit2(6) <= '0';
---				end if;
---				if LTP_Edge_R3C1 > R2C2_Encode_Reg_U then
---					R2C2_Encode_Bit(5) <= '1';
---					R2C2_Encode_Bit2(5) <= '0';
---				elsif LTP_Edge_R3C1 < R2C2_Encode_Reg_D then
---					R2C2_Encode_Bit(5) <= '0';
---					R2C2_Encode_Bit2(5) <= '1';
---				else 
---					R2C2_Encode_Bit(5) <= '0';
---					R2C2_Encode_Bit2(5) <= '0';
---				end if;
---				if LTP_Edge_R3C2 > R2C2_Encode_Reg_U then
---					R2C2_Encode_Bit(4) <= '1';
---					R2C2_Encode_Bit2(4) <= '0';
---				elsif LTP_Edge_R3C2 < R2C2_Encode_Reg_D then
---					R2C2_Encode_Bit(4) <= '0';
---					R2C2_Encode_Bit2(4) <= '1';
---				else 
---					R2C2_Encode_Bit(4) <= '0';
---					R2C2_Encode_Bit2(4) <= '0';
---				end if;
---				if LTP_Edge_R3C3 > R2C2_Encode_Reg_U then
---					R2C2_Encode_Bit(3) <= '1';
---					R2C2_Encode_Bit2(3) <= '0';
---				elsif LTP_Edge_R3C3 < R2C2_Encode_Reg_D then
---					R2C2_Encode_Bit(3) <= '0';
---					R2C2_Encode_Bit2(3) <= '1';
---				else 
---					R2C2_Encode_Bit(3) <= '0';
---					R2C2_Encode_Bit2(3) <= '0';
---				end if;
---				if LTP_Edge_R2C3 > R2C2_Encode_Reg_U then
---					R2C2_Encode_Bit(2) <= '1';
---					R2C2_Encode_Bit2(2) <= '0';
---				elsif LTP_Edge_R2C3 < R2C2_Encode_Reg_D then
---					R2C2_Encode_Bit(2) <= '0';
---					R2C2_Encode_Bit2(2) <= '1';
---				else 
---					R2C2_Encode_Bit(2) <= '0';
---					R2C2_Encode_Bit2(2) <= '0';
---				end if;
---				if LTP_Edge_R1C3 > R2C2_Encode_Reg_U then
---					R2C2_Encode_Bit(1) <= '1';
---					R2C2_Encode_Bit2(1) <= '0';
---				elsif LTP_Edge_R1C3 < R2C2_Encode_Reg_D then
---					R2C2_Encode_Bit(1) <= '0';
---					R2C2_Encode_Bit2(1) <= '1';
---				else 
---					R2C2_Encode_Bit(1) <= '0';
---					R2C2_Encode_Bit2(1) <= '0';
---				end if;
---				if LTP_Edge_R1C2 > R2C2_Encode_Reg_U then
---					R2C2_Encode_Bit(0) <= '1';
---					R2C2_Encode_Bit2(0) <= '0';
---				elsif LTP_Edge_R1C2 < R2C2_Encode_Reg_D then
---					R2C2_Encode_Bit(0) <= '0';
---					R2C2_Encode_Bit2(0) <= '1';
---				else 
---					R2C2_Encode_Bit(0) <= '0';
---					R2C2_Encode_Bit2(0) <= '0';
---				end if;
-
---			else
---				if ImageSelect = '0' then
---					R2C2_Encode <= R2C2_Encode_Bit;
---				else
---					R2C2_Encode <= R2C2_Encode_Bit2;
---				end if;
+--		if (buf_vga_en = '1' and cnt_video_hsync < 1280) then
+--			if LBP_Data_State(0) = '0' then				
+--				LTP_Edge2_R1C1 <= "00" & LTP_Edge2_Column_1(LTP_Edge2_Buf_Cnt);
+--				LTP_Edge2_R2C1 <= LTP_Edge2_R1C1;
+--				LTP_Edge2_R3C1 <= LTP_Edge2_R2C1;
 				
---				LTP_Value(LTP_Cnt) <= R2C2_Encode;
---				if LTP_Cnt < 639 then
---					LTP_Cnt <= LTP_Cnt + 1;
---				else
---					LTP_Cnt <= 0;
---				end if;
+--				LTP_Edge2_R1C2 <= "00" & LTP_Edge2_Column_2(LTP_Edge2_Buf_Cnt);
+--				LTP_Edge2_R2C2 <= LTP_Edge2_R1C2;
+--				LTP_Edge2_R3C2 <= LTP_Edge2_R2C2;
+				
+--				LTP_Edge2_R1C3 <= "00" & LTP_Edge2_Column_3(LTP_Edge2_Buf_Cnt);
+--				LTP_Edge2_R2C3 <= LTP_Edge2_R1C3;
+--				LTP_Edge2_R3C3 <= LTP_Edge2_R2C3;
+				
+--			else	
 
+--				LTP_Edge2_Column_1(LTP_Edge2_Buf_Cnt) <= LTP_Edge_Value(LTP_Edge_Cnt)(7 downto 0);
+--				LTP_Edge2_Column_2(LTP_Edge2_Buf_Cnt) <= LTP_Edge2_R3C1(7 downto 0);
+--				LTP_Edge2_Column_3(LTP_Edge2_Buf_Cnt) <= LTP_Edge2_R3C2(7 downto 0);
+				
+--				if LTP_Edge2_Buf_Cnt = LTP_Edge2_Buf_Length_Max then
+--					LTP_Edge2_Buf_Cnt <= 0;
+--				else
+--					LTP_Edge2_Buf_Cnt <= LTP_Edge2_Buf_Cnt + 1 ;
+--				end if;				
 --			end if;
 --		else
---			R2C2_Encode <= (others =>'0');
---			R2C2_Encode_Bit <= (others =>'0');
----- when cnt_video_hsync > 1280, let redata_cnt be reset
---			LTP_Cnt <= 0;
+--			LTP_Edge2_R1C1 <= "0000000000";
+--			LTP_Edge2_R2C1 <= "0000000000";
+--			LTP_Edge2_R3C1 <= "0000000000";
+			
+--			LTP_Edge2_R1C2 <= "0000000000";
+--			LTP_Edge2_R2C2 <= "0000000000";
+--			LTP_Edge2_R3C2 <= "0000000000";
+			
+--			LTP_Edge2_R1C3 <= "0000000000";
+--			LTP_Edge2_R2C3 <= "0000000000";
+--			LTP_Edge2_R3C3 <= "0000000000";
+--			LTP_Edge2_Buf_Cnt <= 0;
 --		end if;
 --	end if;
 --end if;
---end process LTP_Edge_LTP_Calculate;
---############################################### LTP_Edge to LTP Calculate ###############################################--
+--end process LTP_Edge2BufferMatrix;
+--############################################### LTP_Edge Buffer Matrix ###############################################--
+
+--############################################### LTP_Edge2 to LTP Calculate ###############################################--
+LTP_Edge2_LTP_Calculate:process(rst_system, clk_video)
+variable LTP_Edge2_R2C2_Encode_Reg_U	: std_logic_vector(9 downto 0);
+variable LTP_Edge2_R2C2_Encode_Reg_D	: std_logic_vector(9 downto 0);
+begin
+if rst_system = '0' then
+	LTP_Edge2_R2C2_Encode <= (others =>'0');
+	LTP_Edge2_R2C2_Encode_Bit <= (others =>'0');
+	LTP_Edge2_R2C2_Encode_Bit2<= (others =>'0');
+	LTP_Edge2_Cnt <= 0;
+else
+	if rising_edge(clk_video) then
+		if buf_sobel_cc_en = '1' then
+			if Sobel_Cal_en = '1' then
+			-- if buf_data_state(0) = '0' then
+				LTP_Edge2_R2C2_Encode_Reg_U := LTP_Edge2_R2C2 + R2C2_Encode_Threshold ;
+				LTP_Edge2_R2C2_Encode_Reg_D := LTP_Edge2_R2C2 - R2C2_Encode_Threshold ;
+
+				if LTP_Edge2_R1C1 > LTP_Edge2_R2C2_Encode_Reg_U then
+					LTP_Edge2_R2C2_Encode_Bit(7) <= '1';
+					LTP_Edge2_R2C2_Encode_Bit2(7) <= '0';
+				elsif LTP_Edge2_R1C1 < LTP_Edge2_R2C2_Encode_Reg_D then
+					LTP_Edge2_R2C2_Encode_Bit(7) <= '0';
+					LTP_Edge2_R2C2_Encode_Bit2(7) <= '1';
+				else 
+					LTP_Edge2_R2C2_Encode_Bit(7) <= '0';
+					LTP_Edge2_R2C2_Encode_Bit2(7) <= '0';
+				end if;
+				if LTP_Edge2_R2C1 > LTP_Edge2_R2C2_Encode_Reg_U then
+					LTP_Edge2_R2C2_Encode_Bit(6) <= '1';
+					LTP_Edge2_R2C2_Encode_Bit2(6) <= '0';
+				elsif LTP_Edge2_R2C1 < LTP_Edge2_R2C2_Encode_Reg_D then
+					LTP_Edge2_R2C2_Encode_Bit(6) <= '0';
+					LTP_Edge2_R2C2_Encode_Bit2(6) <= '1';
+				else 
+					LTP_Edge2_R2C2_Encode_Bit(6) <= '0';
+					LTP_Edge2_R2C2_Encode_Bit2(6) <= '0';
+				end if;
+				if LTP_Edge2_R3C1 > LTP_Edge2_R2C2_Encode_Reg_U then
+					LTP_Edge2_R2C2_Encode_Bit(5) <= '1';
+					LTP_Edge2_R2C2_Encode_Bit2(5) <= '0';
+				elsif LTP_Edge2_R3C1 < LTP_Edge2_R2C2_Encode_Reg_D then
+					LTP_Edge2_R2C2_Encode_Bit(5) <= '0';
+					LTP_Edge2_R2C2_Encode_Bit2(5) <= '1';
+				else 
+					LTP_Edge2_R2C2_Encode_Bit(5) <= '0';
+					LTP_Edge2_R2C2_Encode_Bit2(5) <= '0';
+				end if;
+				if LTP_Edge2_R3C2 > LTP_Edge2_R2C2_Encode_Reg_U then
+					LTP_Edge2_R2C2_Encode_Bit(4) <= '1';
+					LTP_Edge2_R2C2_Encode_Bit2(4) <= '0';
+				elsif LTP_Edge2_R3C2 < LTP_Edge2_R2C2_Encode_Reg_D then
+					LTP_Edge2_R2C2_Encode_Bit(4) <= '0';
+					LTP_Edge2_R2C2_Encode_Bit2(4) <= '1';
+				else 
+					LTP_Edge2_R2C2_Encode_Bit(4) <= '0';
+					LTP_Edge2_R2C2_Encode_Bit2(4) <= '0';
+				end if;
+				if LTP_Edge2_R3C3 > LTP_Edge2_R2C2_Encode_Reg_U then
+					LTP_Edge2_R2C2_Encode_Bit(3) <= '1';
+					LTP_Edge2_R2C2_Encode_Bit2(3) <= '0';
+				elsif LTP_Edge2_R3C3 < LTP_Edge2_R2C2_Encode_Reg_D then
+					LTP_Edge2_R2C2_Encode_Bit(3) <= '0';
+					LTP_Edge2_R2C2_Encode_Bit2(3) <= '1';
+				else 
+					LTP_Edge2_R2C2_Encode_Bit(3) <= '0';
+					LTP_Edge2_R2C2_Encode_Bit2(3) <= '0';
+				end if;
+				if LTP_Edge2_R2C3 > LTP_Edge2_R2C2_Encode_Reg_U then
+					LTP_Edge2_R2C2_Encode_Bit(2) <= '1';
+					LTP_Edge2_R2C2_Encode_Bit2(2) <= '0';
+				elsif LTP_Edge2_R2C3 < LTP_Edge2_R2C2_Encode_Reg_D then
+					LTP_Edge2_R2C2_Encode_Bit(2) <= '0';
+					LTP_Edge2_R2C2_Encode_Bit2(2) <= '1';
+				else 
+					LTP_Edge2_R2C2_Encode_Bit(2) <= '0';
+					LTP_Edge2_R2C2_Encode_Bit2(2) <= '0';
+				end if;
+				if LTP_Edge2_R1C3 > LTP_Edge2_R2C2_Encode_Reg_U then
+					LTP_Edge2_R2C2_Encode_Bit(1) <= '1';
+					LTP_Edge2_R2C2_Encode_Bit2(1) <= '0';
+				elsif LTP_Edge2_R1C3 < LTP_Edge2_R2C2_Encode_Reg_D then
+					LTP_Edge2_R2C2_Encode_Bit(1) <= '0';
+					LTP_Edge2_R2C2_Encode_Bit2(1) <= '1';
+				else 
+					LTP_Edge2_R2C2_Encode_Bit(1) <= '0';
+					LTP_Edge2_R2C2_Encode_Bit2(1) <= '0';
+				end if;
+				if LTP_Edge2_R1C2 > LTP_Edge2_R2C2_Encode_Reg_U then
+					LTP_Edge2_R2C2_Encode_Bit(0) <= '1';
+					LTP_Edge2_R2C2_Encode_Bit2(0) <= '0';
+				elsif LTP_Edge2_R1C2 < LTP_Edge2_R2C2_Encode_Reg_D then
+					LTP_Edge2_R2C2_Encode_Bit(0) <= '0';
+					LTP_Edge2_R2C2_Encode_Bit2(0) <= '1';
+				else 
+					LTP_Edge2_R2C2_Encode_Bit(0) <= '0';
+					LTP_Edge2_R2C2_Encode_Bit2(0) <= '0';
+				end if;
+
+			else
+				if ImageSelect = '0' then
+					LTP_Edge2_R2C2_Encode <= LTP_Edge2_R2C2_Encode_Bit;
+				else
+					LTP_Edge2_R2C2_Encode <= LTP_Edge2_R2C2_Encode_Bit2;
+				end if;
+				
+				LTP_Edge2_Value(LTP_Edge2_Cnt) <= LTP_Edge2_R2C2_Encode;
+				if LTP_Edge2_Cnt < 639 then
+					LTP_Edge2_Cnt <= LTP_Edge2_Cnt + 1;
+				else
+					LTP_Edge2_Cnt <= 0;
+				end if;
+
+			end if;
+		else
+			LTP_Edge2_R2C2_Encode <= (others =>'0');
+			LTP_Edge2_R2C2_Encode_Bit <= (others =>'0');
+-- when cnt_video_hsync > 1280, let redata_cnt be reset
+			LTP_Edge2_Cnt <= 0;
+		end if;
+	end if;
+end if;
+end process LTP_Edge2_LTP_Calculate;
+--############################################### LTP_Edge2 to LTP Calculate ###############################################--
+
+--############################################### LTP_Edge3 to LTP Calculate ###############################################--
+LTP_Edge3_LTP_Calculate:process(rst_system, clk_video)
+variable LTP_Edge3_R2C2_Encode_Reg_U	: std_logic_vector(9 downto 0);
+variable LTP_Edge3_R2C2_Encode_Reg_D	: std_logic_vector(9 downto 0);
+begin
+if rst_system = '0' then
+	LTP_Edge3_R2C2_Encode <= (others =>'0');
+	LTP_Edge3_R2C2_Encode_Bit <= (others =>'0');
+	LTP_Edge3_R2C2_Encode_Bit2<= (others =>'0');
+	LTP_Edge3_Cnt <= 0;
+else
+	if rising_edge(clk_video) then
+		if buf_sobel_cc_en = '1' then
+			if Sobel_Cal_en = '1' then
+			-- if buf_data_state(0) = '0' then
+				LTP_Edge3_R2C2_Encode_Reg_U := LTP_Edge3_R2C2 + R2C2_Encode_Threshold ;
+				LTP_Edge3_R2C2_Encode_Reg_D := LTP_Edge3_R2C2 - R2C2_Encode_Threshold ;
+
+				if LTP_Edge3_R1C1 > LTP_Edge3_R2C2_Encode_Reg_U then
+					LTP_Edge3_R2C2_Encode_Bit(7) <= '1';
+					LTP_Edge3_R2C2_Encode_Bit2(7) <= '0';
+				elsif LTP_Edge3_R1C1 < LTP_Edge3_R2C2_Encode_Reg_D then
+					LTP_Edge3_R2C2_Encode_Bit(7) <= '0';
+					LTP_Edge3_R2C2_Encode_Bit2(7) <= '1';
+				else 
+					LTP_Edge3_R2C2_Encode_Bit(7) <= '0';
+					LTP_Edge3_R2C2_Encode_Bit2(7) <= '0';
+				end if;
+				if LTP_Edge3_R2C1 > LTP_Edge3_R2C2_Encode_Reg_U then
+					LTP_Edge3_R2C2_Encode_Bit(6) <= '1';
+					LTP_Edge3_R2C2_Encode_Bit2(6) <= '0';
+				elsif LTP_Edge3_R2C1 < LTP_Edge3_R2C2_Encode_Reg_D then
+					LTP_Edge3_R2C2_Encode_Bit(6) <= '0';
+					LTP_Edge3_R2C2_Encode_Bit2(6) <= '1';
+				else 
+					LTP_Edge3_R2C2_Encode_Bit(6) <= '0';
+					LTP_Edge3_R2C2_Encode_Bit2(6) <= '0';
+				end if;
+				if LTP_Edge3_R3C1 > LTP_Edge3_R2C2_Encode_Reg_U then
+					LTP_Edge3_R2C2_Encode_Bit(5) <= '1';
+					LTP_Edge3_R2C2_Encode_Bit2(5) <= '0';
+				elsif LTP_Edge3_R3C1 < LTP_Edge3_R2C2_Encode_Reg_D then
+					LTP_Edge3_R2C2_Encode_Bit(5) <= '0';
+					LTP_Edge3_R2C2_Encode_Bit2(5) <= '1';
+				else 
+					LTP_Edge3_R2C2_Encode_Bit(5) <= '0';
+					LTP_Edge3_R2C2_Encode_Bit2(5) <= '0';
+				end if;
+				if LTP_Edge3_R3C2 > LTP_Edge3_R2C2_Encode_Reg_U then
+					LTP_Edge3_R2C2_Encode_Bit(4) <= '1';
+					LTP_Edge3_R2C2_Encode_Bit2(4) <= '0';
+				elsif LTP_Edge3_R3C2 < LTP_Edge3_R2C2_Encode_Reg_D then
+					LTP_Edge3_R2C2_Encode_Bit(4) <= '0';
+					LTP_Edge3_R2C2_Encode_Bit2(4) <= '1';
+				else 
+					LTP_Edge3_R2C2_Encode_Bit(4) <= '0';
+					LTP_Edge3_R2C2_Encode_Bit2(4) <= '0';
+				end if;
+				if LTP_Edge3_R3C3 > LTP_Edge3_R2C2_Encode_Reg_U then
+					LTP_Edge3_R2C2_Encode_Bit(3) <= '1';
+					LTP_Edge3_R2C2_Encode_Bit2(3) <= '0';
+				elsif LTP_Edge3_R3C3 < LTP_Edge3_R2C2_Encode_Reg_D then
+					LTP_Edge3_R2C2_Encode_Bit(3) <= '0';
+					LTP_Edge3_R2C2_Encode_Bit2(3) <= '1';
+				else 
+					LTP_Edge3_R2C2_Encode_Bit(3) <= '0';
+					LTP_Edge3_R2C2_Encode_Bit2(3) <= '0';
+				end if;
+				if LTP_Edge3_R2C3 > LTP_Edge3_R2C2_Encode_Reg_U then
+					LTP_Edge3_R2C2_Encode_Bit(2) <= '1';
+					LTP_Edge3_R2C2_Encode_Bit2(2) <= '0';
+				elsif LTP_Edge3_R2C3 < LTP_Edge3_R2C2_Encode_Reg_D then
+					LTP_Edge3_R2C2_Encode_Bit(2) <= '0';
+					LTP_Edge3_R2C2_Encode_Bit2(2) <= '1';
+				else 
+					LTP_Edge3_R2C2_Encode_Bit(2) <= '0';
+					LTP_Edge3_R2C2_Encode_Bit2(2) <= '0';
+				end if;
+				if LTP_Edge3_R1C3 > LTP_Edge3_R2C2_Encode_Reg_U then
+					LTP_Edge3_R2C2_Encode_Bit(1) <= '1';
+					LTP_Edge3_R2C2_Encode_Bit2(1) <= '0';
+				elsif LTP_Edge3_R1C3 < LTP_Edge3_R2C2_Encode_Reg_D then
+					LTP_Edge3_R2C2_Encode_Bit(1) <= '0';
+					LTP_Edge3_R2C2_Encode_Bit2(1) <= '1';
+				else 
+					LTP_Edge3_R2C2_Encode_Bit(1) <= '0';
+					LTP_Edge3_R2C2_Encode_Bit2(1) <= '0';
+				end if;
+				if LTP_Edge3_R1C2 > LTP_Edge3_R2C2_Encode_Reg_U then
+					LTP_Edge3_R2C2_Encode_Bit(0) <= '1';
+					LTP_Edge3_R2C2_Encode_Bit2(0) <= '0';
+				elsif LTP_Edge3_R1C2 < LTP_Edge3_R2C2_Encode_Reg_D then
+					LTP_Edge3_R2C2_Encode_Bit(0) <= '0';
+					LTP_Edge3_R2C2_Encode_Bit2(0) <= '1';
+				else 
+					LTP_Edge3_R2C2_Encode_Bit(0) <= '0';
+					LTP_Edge3_R2C2_Encode_Bit2(0) <= '0';
+				end if;
+
+			else
+				if ImageSelect = '0' then
+					LTP_Edge3_R2C2_Encode <= LTP_Edge3_R2C2_Encode_Bit;
+				else
+					LTP_Edge3_R2C2_Encode <= LTP_Edge3_R2C2_Encode_Bit2;
+				end if;
+				
+				LTP_Edge3_Value(LTP_Edge3_Cnt) <= LTP_Edge3_R2C2_Encode;
+				if LTP_Edge3_Cnt < 639 then
+					LTP_Edge3_Cnt <= LTP_Edge3_Cnt + 1;
+				else
+					LTP_Edge3_Cnt <= 0;
+				end if;
+
+			end if;
+		else
+			LTP_Edge3_R2C2_Encode <= (others =>'0');
+			LTP_Edge3_R2C2_Encode_Bit <= (others =>'0');
+-- when cnt_video_hsync > 1280, let redata_cnt be reset
+			LTP_Edge3_Cnt <= 0;
+		end if;
+	end if;
+end if;
+end process LTP_Edge3_LTP_Calculate;
+--############################################### LTP_Edge3 to LTP Calculate ###############################################--
+
 
 
 --############################################### LBP Buffer Matrix ###############################################--
