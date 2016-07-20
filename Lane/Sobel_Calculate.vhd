@@ -26,6 +26,7 @@ entity Sobel_Calculate is
 			SB_YSCR : buffer std_logic_vector((10-1) downto 0);
 			SB_SUM : buffer std_logic_vector((11-1) downto 0);
 			SB_buf_redata : inout Sobel_buf;
+			Encode_Threshold	: in std_logic_vector((12-1) downto 0);
 			redata_cnt : buffer integer range 0 to 650						
 			--SB_CRB_data : in std_logic:='0';
 		);
@@ -89,7 +90,7 @@ else
 -- sum  X_sobel  &  Y_sobel
 				SB_SUM <= "00000000000"+SB_XSCR+SB_YSCR;
 -- put SUM_sobel to SB_buf_redata(0~640) SB_SUM 10 downto 0 9bits + 9bits							
-				if SB_SUM > "00111111111" then
+				if SB_SUM > Encode_Threshold then
 					SB_buf_redata(redata_cnt) <= "11111111";
 				else
 					SB_buf_redata(redata_cnt) <= SB_SUM(9 downto 2); 
