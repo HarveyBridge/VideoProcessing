@@ -63,6 +63,33 @@ component i2c
 
 end component;
 
+component Sobel_Calculate is
+	Port(
+			rst_system	: in std_logic;
+			clk_video 	: in std_logic;
+			buf_sobel_cc_en : in std_logic;
+			buf_vga_en		: in std_logic;	
+			cnt_video_hsync	: in  integer range 0 to 1715;	
+			buf_data_state  : in std_logic_vector(1 downto 0);	
+			Sobel_Cal_R1C1  : in std_logic_vector(10-1 downto 0);
+			Sobel_Cal_R2C1  : in std_logic_vector(10-1 downto 0);		
+			Sobel_Cal_R3C1  : in std_logic_vector(10-1 downto 0);
+			Sobel_Cal_R1C2  : in std_logic_vector(10-1 downto 0);
+			Sobel_Cal_R2C2  : in std_logic_vector(10-1 downto 0);		
+			Sobel_Cal_R3C2  : in std_logic_vector(10-1 downto 0);
+			Sobel_Cal_R1C3  : in std_logic_vector(10-1 downto 0);
+			Sobel_Cal_R2C3  : in std_logic_vector(10-1 downto 0);		
+			Sobel_Cal_R3C3  : in std_logic_vector(10-1 downto 0);
+			Sobel_Cal_en	: inout std_logic;
+			SB_XSCR : buffer std_logic_vector((10-1) downto 0);
+			SB_YSCR : buffer std_logic_vector((10-1) downto 0);
+			SB_SUM : buffer std_logic_vector((11-1) downto 0);
+			SB_buf_redata : inout Sobel_buf;
+			redata_cnt : buffer integer range 0 to 650						
+			--SB_CRB_data : in std_logic:='0';
+		);
+end component;
+
 component BufferToMatrix3x3 is
 	Port(
 			clk_video	: in std_logic;
@@ -184,7 +211,7 @@ signal SB_SUM : std_logic_vector((11-1) downto 0):="00000000000";
 
 signal SB_CRB_data : std_logic:='0';
 
-type Sobel_buf is array (integer range 0 to 650) of std_logic_vector ((8-1) downto 0);
+--type Sobel_buf is array (integer range 0 to 650) of std_logic_vector ((8-1) downto 0);
 signal SB_buf_redata : Sobel_buf;
 
 signal redata_cnt : integer range 0 to 650:=0;
@@ -437,6 +464,53 @@ i2c_1 :i2c
                 scl => scl,
                 sda => sda           
 			);
+
+Sobel_Cal_BTM3x3 : BufferToMatrix3x3
+	port map (
+		clk_video 		=> clk_video,
+		rst_system 		=> rst_system,		
+		buf_vga_en 		=> buf_vga_en,
+		buf_data_state 	=> buf_data_state,
+		cnt_video_hsync => cnt_video_hsync,
+
+		data_video 		=> data_video(7 downto 0),
+		Matrix_R1C1 	=> Sobel_Cal_R1C1,
+		Matrix_R2C1 	=> Sobel_Cal_R2C1,
+		Matrix_R3C1 	=> Sobel_Cal_R3C1,
+		Matrix_R1C2 	=> Sobel_Cal_R1C2,
+		Matrix_R2C2 	=> Sobel_Cal_R2C2,
+		Matrix_R3C2 	=> Sobel_Cal_R3C2,
+		Matrix_R1C3 	=> Sobel_Cal_R1C3,
+		Matrix_R2C3 	=> Sobel_Cal_R2C3,
+		Matrix_R3C3 	=> Sobel_Cal_R3C3,
+		Matrix_Buf_Cnt 	=> Sobel_Cal_Buf_Cnt
+		);
+Sobel_Cal_Functions: Sobel_Calculate
+	port map(
+		clk_video 		=> clk_video,
+		rst_system 		=> rst_system,		
+		buf_vga_en 		=> buf_vga_en,
+		cnt_video_hsync => cnt_video_hsync,
+		buf_data_state 	=> buf_data_state,
+		buf_sobel_cc_en => buf_sobel_cc_en,
+		
+		Sobel_Cal_R1C1  => Sobel_Cal_R1C1,
+		Sobel_Cal_R2C1  => Sobel_Cal_R2C1,
+		Sobel_Cal_R3C1  => Sobel_Cal_R3C1,
+		Sobel_Cal_R1C2  => Sobel_Cal_R1C2,
+		Sobel_Cal_R2C2  => Sobel_Cal_R2C2,
+		Sobel_Cal_R3C2  => Sobel_Cal_R3C2,		
+		Sobel_Cal_R1C3  => Sobel_Cal_R1C3,
+		Sobel_Cal_R2C3  => Sobel_Cal_R2C3,
+		Sobel_Cal_R3C3  => Sobel_Cal_R3C3,
+		Sobel_Cal_en	=> Sobel_Cal_en,
+		SB_XSCR 		=> SB_XSCR,
+		SB_YSCR 		=> SB_YSCR,
+		SB_SUM 			=> SB_SUM,
+		SB_buf_redata 	=> SB_buf_redata,
+		redata_cnt 		=> redata_cnt
+		);
+
 
 LTP_Edge2_BTM3x3 : BufferToMatrix3x3
 	port map (
@@ -889,10 +963,12 @@ elsif rising_edge(clk_video) then
 									--r_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
 									--g_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
 									--b_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
-									r_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
-									g_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
-									b_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
-
+									--r_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
+									--g_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
+									--b_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
+									r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+									g_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+									b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);	
 									-- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ Inner Special Range 150x200 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ --
 								end if;
 							end if;
@@ -1021,9 +1097,12 @@ elsif rising_edge(clk_video) then
 								--r_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
 								--g_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
 								--b_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
-								r_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
-								g_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
-								b_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);								
+								--r_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
+								--g_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
+								--b_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
+								r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+								g_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+								b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);								
 							end if;				
 						end if;
 					end if;
@@ -1168,76 +1247,76 @@ end process Buffer_State;
 --############################################### Buffer State ###############################################--
 
 
--- --############################################### Sobel Calculate ###############################################--
-Sobel_Calculate:process(rst_system, clk_video)
-variable sobel_x_cc_1 : std_logic_vector(9 downto 0);
-variable sobel_x_cc_2 : std_logic_vector(9 downto 0);
-variable sobel_y_cc_1 : std_logic_vector(9 downto 0);
-variable sobel_y_cc_2 : std_logic_vector(9 downto 0);
-begin
-if rst_system = '0' then
-	SB_XSCR <= "0000000000";
-	SB_YSCR <= "0000000000";
-	SB_SUM  <= "00000000000";
-	SB_CRB_data <= '0';
--- system reset
-	redata_cnt <= 0 ;
-	redata_en <= '0';
-	Sobel_Cal_en <= '0';
-else
-	if rising_edge(clk_video) then
-		if buf_sobel_cc_en = '1' then
-			if buf_data_state(0) = '1' then
-			-- if buf_data_state(0) = '0' then
-				sobel_x_cc_1 := SB_buf_0_data_1 + SB_buf_0_data_2 + SB_buf_0_data_2 + SB_buf_0_data_3;
-				sobel_x_cc_2 := SB_buf_2_data_1 + SB_buf_2_data_2 + SB_buf_2_data_2 + SB_buf_2_data_3;
+---- --############################################### Sobel Calculate ###############################################--
+--Sobel_Calculate:process(rst_system, clk_video)
+--variable sobel_x_cc_1 : std_logic_vector(9 downto 0);
+--variable sobel_x_cc_2 : std_logic_vector(9 downto 0);
+--variable sobel_y_cc_1 : std_logic_vector(9 downto 0);
+--variable sobel_y_cc_2 : std_logic_vector(9 downto 0);
+--begin
+--if rst_system = '0' then
+--	SB_XSCR <= "0000000000";
+--	SB_YSCR <= "0000000000";
+--	SB_SUM  <= "00000000000";
+--	SB_CRB_data <= '0';
+---- system reset
+--	redata_cnt <= 0 ;
+--	redata_en <= '0';
+--	Sobel_Cal_en <= '0';
+--else
+--	if rising_edge(clk_video) then
+--		if buf_sobel_cc_en = '1' then
+--			if buf_data_state(0) = '1' then
+--			-- if buf_data_state(0) = '0' then
+--				sobel_x_cc_1 := SB_buf_0_data_1 + SB_buf_0_data_2 + SB_buf_0_data_2 + SB_buf_0_data_3;
+--				sobel_x_cc_2 := SB_buf_2_data_1 + SB_buf_2_data_2 + SB_buf_2_data_2 + SB_buf_2_data_3;
 				
-				sobel_y_cc_1 := SB_buf_0_data_1 + SB_buf_1_data_1 + SB_buf_1_data_1 + SB_buf_2_data_1;
-				sobel_y_cc_2 := SB_buf_0_data_3 + SB_buf_1_data_3 + SB_buf_1_data_3 + SB_buf_2_data_3;
+--				sobel_y_cc_1 := SB_buf_0_data_1 + SB_buf_1_data_1 + SB_buf_1_data_1 + SB_buf_2_data_1;
+--				sobel_y_cc_2 := SB_buf_0_data_3 + SB_buf_1_data_3 + SB_buf_1_data_3 + SB_buf_2_data_3;
 	
-				if sobel_x_cc_1 >= sobel_x_cc_2 then
-					SB_XSCR <= sobel_x_cc_1 - sobel_x_cc_2;
-				else
-					SB_XSCR <= sobel_x_cc_2 - sobel_x_cc_1;
-				end if;
+--				if sobel_x_cc_1 >= sobel_x_cc_2 then
+--					SB_XSCR <= sobel_x_cc_1 - sobel_x_cc_2;
+--				else
+--					SB_XSCR <= sobel_x_cc_2 - sobel_x_cc_1;
+--				end if;
 				
-				if sobel_y_cc_1 >= sobel_y_cc_2 then
-					SB_YSCR <= sobel_y_cc_1 - sobel_y_cc_2;
-				else
-					SB_YSCR <= sobel_y_cc_2 - sobel_y_cc_1;
-				end if;
-				Sobel_Cal_en <= '0';
-			else
-				--if ((SB_XSCR > "0001100000" and SB_XSCR < "0011100000") or (SB_YSCR > "0001100000" and SB_YSCR < "0011100000")) then
-					-- SB_CRB_data <= '1';
-				Sobel_Cal_en <= '1';
--- sum  X_sobel  &  Y_sobel
-				SB_SUM <= "00000000000"+SB_XSCR+SB_YSCR;
--- put SUM_sobel to SB_buf_redata(0~640) SB_SUM 10 downto 0 9bits + 9bits							
-				if SB_SUM > "00111111111" then
-					SB_buf_redata(redata_cnt) <= "11111111";
-				else
-					SB_buf_redata(redata_cnt) <= SB_SUM(9 downto 2); 
-				end if;
--- counter redata_cnt to get SB_buf_redata address
-				if redata_cnt < 639 then
-						redata_cnt <= redata_cnt + 1;
-				else
-					redata_cnt <= 0;
-				end if;
-			end if;
-		else
-			SB_XSCR <= "0000000000";
-			SB_YSCR <= "0000000000";
-			SB_CRB_data <= '0';
--- when cnt_video_hsync > 1280, let redata_cnt be reset
-			redata_cnt <= 0;
-			Sobel_Cal_en <= '0';
-		end if;
-	end if;
-end if;
-end process Sobel_Calculate;
--- --############################################### Sobel Calculate ###############################################--
+--				if sobel_y_cc_1 >= sobel_y_cc_2 then
+--					SB_YSCR <= sobel_y_cc_1 - sobel_y_cc_2;
+--				else
+--					SB_YSCR <= sobel_y_cc_2 - sobel_y_cc_1;
+--				end if;
+--				Sobel_Cal_en <= '0';
+--			else
+--				--if ((SB_XSCR > "0001100000" and SB_XSCR < "0011100000") or (SB_YSCR > "0001100000" and SB_YSCR < "0011100000")) then
+--					-- SB_CRB_data <= '1';
+--				Sobel_Cal_en <= '1';
+---- sum  X_sobel  &  Y_sobel
+--				SB_SUM <= "00000000000"+SB_XSCR+SB_YSCR;
+---- put SUM_sobel to SB_buf_redata(0~640) SB_SUM 10 downto 0 9bits + 9bits							
+--				if SB_SUM > "00111111111" then
+--					SB_buf_redata(redata_cnt) <= "11111111";
+--				else
+--					SB_buf_redata(redata_cnt) <= SB_SUM(9 downto 2); 
+--				end if;
+---- counter redata_cnt to get SB_buf_redata address
+--				if redata_cnt < 639 then
+--						redata_cnt <= redata_cnt + 1;
+--				else
+--					redata_cnt <= 0;
+--				end if;
+--			end if;
+--		else
+--			SB_XSCR <= "0000000000";
+--			SB_YSCR <= "0000000000";
+--			SB_CRB_data <= '0';
+---- when cnt_video_hsync > 1280, let redata_cnt be reset
+--			redata_cnt <= 0;
+--			Sobel_Cal_en <= '0';
+--		end if;
+--	end if;
+--end if;
+--end process Sobel_Calculate;
+---- --############################################### Sobel Calculate ###############################################--
 
 
 --############################################### LTP_Edge Buffer Matrix ###############################################--
@@ -1815,69 +1894,70 @@ end process LoadtoBufferMatrix;
 --############################################### LBP Buffer Matrix ###############################################--
 
 
---############################################### MySobel Buffer Matrix ###############################################--
-MySobelBufferMatrix:process(rst_system, clk_video)
-begin
-if rst_system = '0' then
-	Sobel_Cal_R1C1 <= "0000000000";
-	Sobel_Cal_R2C1 <= "0000000000";
-	Sobel_Cal_R3C1 <= "0000000000";
+----############################################### MySobel Buffer Matrix ###############################################--
+--MySobelBufferMatrix:process(rst_system, clk_video)
+--begin
+--if rst_system = '0' then
+--	Sobel_Cal_R1C1 <= "0000000000";
+--	Sobel_Cal_R2C1 <= "0000000000";
+--	Sobel_Cal_R3C1 <= "0000000000";
 	
-	Sobel_Cal_R1C2 <= "0000000000";
-	Sobel_Cal_R2C2 <= "0000000000";
-	Sobel_Cal_R3C2 <= "0000000000";
+--	Sobel_Cal_R1C2 <= "0000000000";
+--	Sobel_Cal_R2C2 <= "0000000000";
+--	Sobel_Cal_R3C2 <= "0000000000";
 	
-	Sobel_Cal_R1C3 <= "0000000000";
-	Sobel_Cal_R2C3 <= "0000000000";
-	Sobel_Cal_R3C3 <= "0000000000";
-	Sobel_Cal_Buf_Cnt <= 0;
+--	Sobel_Cal_R1C3 <= "0000000000";
+--	Sobel_Cal_R2C3 <= "0000000000";
+--	Sobel_Cal_R3C3 <= "0000000000";
+--	Sobel_Cal_Buf_Cnt <= 0;
 
-else
-	if rising_edge(clk_video) then
-		if (buf_vga_en = '1' and cnt_video_hsync < 1280) then
-			if Sobel_Cal_en = '0' then				
-				Sobel_Cal_R1C1 <= "00" & Sobel_Cal_Column_1(Sobel_Cal_Buf_Cnt);
-				Sobel_Cal_R2C1 <= Sobel_Cal_R1C1;
-				Sobel_Cal_R3C1 <= Sobel_Cal_R2C1;
+--else
+--	if rising_edge(clk_video) then
+--		if (buf_vga_en = '1' and cnt_video_hsync < 1280) then
+--			if Sobel_Cal_en = '0' then				
+--				Sobel_Cal_R1C1 <= "00" & Sobel_Cal_Column_1(Sobel_Cal_Buf_Cnt);
+--				Sobel_Cal_R2C1 <= Sobel_Cal_R1C1;
+--				Sobel_Cal_R3C1 <= Sobel_Cal_R2C1;
 				
-				Sobel_Cal_R1C2 <= "00" & Sobel_Cal_Column_2(Sobel_Cal_Buf_Cnt);
-				Sobel_Cal_R2C2 <= Sobel_Cal_R1C2;
-				Sobel_Cal_R3C2 <= Sobel_Cal_R2C2;
+--				Sobel_Cal_R1C2 <= "00" & Sobel_Cal_Column_2(Sobel_Cal_Buf_Cnt);
+--				Sobel_Cal_R2C2 <= Sobel_Cal_R1C2;
+--				Sobel_Cal_R3C2 <= Sobel_Cal_R2C2;
 				
-				Sobel_Cal_R1C3 <= "00" & Sobel_Cal_Column_3(Sobel_Cal_Buf_Cnt);
-				Sobel_Cal_R2C3 <= Sobel_Cal_R1C3;
-				Sobel_Cal_R3C3 <= Sobel_Cal_R2C3;
+--				Sobel_Cal_R1C3 <= "00" & Sobel_Cal_Column_3(Sobel_Cal_Buf_Cnt);
+--				Sobel_Cal_R2C3 <= Sobel_Cal_R1C3;
+--				Sobel_Cal_R3C3 <= Sobel_Cal_R2C3;
 				
-			else	
+--			else	
 
-				Sobel_Cal_Column_1(Sobel_Cal_Buf_Cnt) <= SB_buf_redata(redata_cnt)(7 downto 0);	-- Data Input
-				Sobel_Cal_Column_2(Sobel_Cal_Buf_Cnt) <= Sobel_Cal_R3C1(7 downto 0);
-				Sobel_Cal_Column_3(Sobel_Cal_Buf_Cnt) <= Sobel_Cal_R3C2(7 downto 0);
+--				--Sobel_Cal_Column_1(Sobel_Cal_Buf_Cnt) <= SB_buf_redata(redata_cnt)(7 downto 0);	-- Data Input
+--				Sobel_Cal_Column_1(Sobel_Cal_Buf_Cnt) <= data_video(7 downto 0);	-- Data Input
+--				Sobel_Cal_Column_2(Sobel_Cal_Buf_Cnt) <= Sobel_Cal_R3C1(7 downto 0);
+--				Sobel_Cal_Column_3(Sobel_Cal_Buf_Cnt) <= Sobel_Cal_R3C2(7 downto 0);
 				
-				if Sobel_Cal_Buf_Cnt = Sobel_Cal_Buf_Length_Max then
-					Sobel_Cal_Buf_Cnt <= 0;
-				else
-					Sobel_Cal_Buf_Cnt <= Sobel_Cal_Buf_Cnt + 1 ;
-				end if;				
-			end if;
-		else
-			Sobel_Cal_R1C1 <= "0000000000";
-			Sobel_Cal_R2C1 <= "0000000000";
-			Sobel_Cal_R3C1 <= "0000000000";
+--				if Sobel_Cal_Buf_Cnt = Sobel_Cal_Buf_Length_Max then
+--					Sobel_Cal_Buf_Cnt <= 0;
+--				else
+--					Sobel_Cal_Buf_Cnt <= Sobel_Cal_Buf_Cnt + 1 ;
+--				end if;				
+--			end if;
+--		else
+--			Sobel_Cal_R1C1 <= "0000000000";
+--			Sobel_Cal_R2C1 <= "0000000000";
+--			Sobel_Cal_R3C1 <= "0000000000";
 			
-			Sobel_Cal_R1C2 <= "0000000000";
-			Sobel_Cal_R2C2 <= "0000000000";
-			Sobel_Cal_R3C2 <= "0000000000";
+--			Sobel_Cal_R1C2 <= "0000000000";
+--			Sobel_Cal_R2C2 <= "0000000000";
+--			Sobel_Cal_R3C2 <= "0000000000";
 			
-			Sobel_Cal_R1C3 <= "0000000000";
-			Sobel_Cal_R2C3 <= "0000000000";
-			Sobel_Cal_R3C3 <= "0000000000";
-			Sobel_Cal_Buf_Cnt <= 0;
-		end if;
-	end if;
-end if;
-end process MySobelBufferMatrix;
---############################################### MySobel Buffer Matrix ###############################################--
+--			Sobel_Cal_R1C3 <= "0000000000";
+--			Sobel_Cal_R2C3 <= "0000000000";
+--			Sobel_Cal_R3C3 <= "0000000000";
+--			Sobel_Cal_Buf_Cnt <= 0;
+--		end if;
+--	end if;
+--end if;
+--end process MySobelBufferMatrix;
+----############################################### MySobel Buffer Matrix ###############################################--
 
 
 --############################################### Sobel_Cal to LTP Calculate ###############################################--
