@@ -35,6 +35,46 @@ end Sobel_Calculate;
 architecture Sobel_Calculate_arch of Sobel_Calculate is
 
 begin
+
+--############################################### Sobel Expression ###############################################--
+--			 Col-1   Col-2  Col-3
+--			[ R1C1 , R1C2 , R1C3 ]
+--Matrix =	[ R2C1 , R2C2 , R2C3 ]
+--			[ R3C1 , R3C2 , R3C3 ]
+
+--			 		Col-1   Col-2  Col-3
+--					[ -1 , 	  0 , 	+1 ]
+--	Gx	Matrix =	[ -2 , 	  0 , 	+2 ]
+--					[ -1 , 	  0 , 	+1 ]
+
+--			 		Col-1   Col-2  Col-3
+--					[ -1 , 	 -2 , 	-1 ]
+--	Gy	Matrix =	[  0 , 	  0 , 	 0 ]
+--					[ +1 , 	 +2 , 	+1 ]
+
+
+--############################################### Sobel Expression ###############################################--
+
+--############################################### Scharr Expression ###############################################--
+--			 Col-1   Col-2  Col-3
+--			[ R1C1 , R1C2 , R1C3 ]
+--Matrix =	[ R2C1 , R2C2 , R2C3 ]
+--			[ R3C1 , R3C2 , R3C3 ]
+
+--			 		Col-1   Col-2  Col-3
+--					[ -3  ,	  0 , 	+3  ]
+--	Gx	Matrix =	[ -10 ,	  0 , 	+10 ]
+--					[ -3  ,	  0 , 	+3  ]
+
+--			 		Col-1   Col-2  Col-3
+--					[ -3 , 	 -10 , 	-3 ]
+--	Gy	Matrix =	[  0 , 	  0  , 	 0 ]
+--					[ +3 , 	 +10 , 	+3 ]
+
+
+--############################################### Scharr Expression ###############################################--
+
+
 Sobel_Calculate:process(rst_system, clk_video)
 variable sobel_x_cc_1 : std_logic_vector(9 downto 0);
 variable sobel_x_cc_2 : std_logic_vector(9 downto 0);
@@ -62,13 +102,31 @@ else
 				--sobel_y_cc_1 := SB_buf_0_data_1 + SB_buf_1_data_1 + SB_buf_1_data_1 + SB_buf_2_data_1;
 				--sobel_y_cc_2 := SB_buf_0_data_3 + SB_buf_1_data_3 + SB_buf_1_data_3 + SB_buf_2_data_3;
 
+				--$$$$$$$$$$$$$$$$$ Sobel Expression $$$$$$$$$$$$$$$$$--
 				sobel_x_cc_1 := Sobel_Cal_R1C1 + Sobel_Cal_R2C1 + Sobel_Cal_R2C1 + Sobel_Cal_R3C1;
 				sobel_x_cc_2 := Sobel_Cal_R1C3 + Sobel_Cal_R2C3 + Sobel_Cal_R2C3 + Sobel_Cal_R3C3;
 
 				sobel_y_cc_1 := Sobel_Cal_R1C1 + Sobel_Cal_R1C2 + Sobel_Cal_R1C2 + Sobel_Cal_R1C3;
 				sobel_y_cc_2 := Sobel_Cal_R3C1 + Sobel_Cal_R3C2 + Sobel_Cal_R3C2 + Sobel_Cal_R3C3;
-				
-				
+				----$$$$$$$$$$$$$$$$$ Sobel Expression $$$$$$$$$$$$$$$$$--								
+
+				--$$$$$$$$$$$$$$$$$ Scharr Expression $$$$$$$$$$$$$$$$$--
+				--sobel_x_cc_1 := Sobel_Cal_R1C1 + Sobel_Cal_R1C1 + Sobel_Cal_R1C1 
+				--				+ Sobel_Cal_R2C1 + Sobel_Cal_R2C1 + Sobel_Cal_R2C1 + Sobel_Cal_R2C1 + Sobel_Cal_R2C1 + Sobel_Cal_R2C1 + Sobel_Cal_R2C1 + Sobel_Cal_R2C1 + Sobel_Cal_R2C1 + Sobel_Cal_R2C1
+				--				+ Sobel_Cal_R3C1 + Sobel_Cal_R3C1 + Sobel_Cal_R3C1;
+
+				--sobel_x_cc_2 := Sobel_Cal_R1C3 + Sobel_Cal_R1C3 +Sobel_Cal_R1C3
+				--				+ Sobel_Cal_R2C3 + Sobel_Cal_R2C3 + Sobel_Cal_R2C3 + Sobel_Cal_R2C3 + Sobel_Cal_R2C3 + Sobel_Cal_R2C3 + Sobel_Cal_R2C3 + Sobel_Cal_R2C3 + Sobel_Cal_R2C3 + Sobel_Cal_R2C3
+				--				+ Sobel_Cal_R3C3 + Sobel_Cal_R3C3 + Sobel_Cal_R3C3;
+
+				--sobel_y_cc_1 := Sobel_Cal_R1C1 + Sobel_Cal_R1C1 + Sobel_Cal_R1C1 
+				--				+ Sobel_Cal_R1C2 + Sobel_Cal_R1C2 + Sobel_Cal_R1C2 + Sobel_Cal_R1C2 + Sobel_Cal_R1C2 + Sobel_Cal_R1C2 + Sobel_Cal_R1C2 + Sobel_Cal_R1C2 + Sobel_Cal_R1C2 + Sobel_Cal_R1C2
+				--				+ Sobel_Cal_R1C3 + Sobel_Cal_R1C3 + Sobel_Cal_R1C3;
+
+				--sobel_y_cc_2 := Sobel_Cal_R3C1 + Sobel_Cal_R3C1 + Sobel_Cal_R3C1
+				--				+ Sobel_Cal_R3C2 + Sobel_Cal_R3C2 + Sobel_Cal_R3C2 + Sobel_Cal_R3C2 + Sobel_Cal_R3C2 + Sobel_Cal_R3C2 + Sobel_Cal_R3C2 + Sobel_Cal_R3C2 + Sobel_Cal_R3C2 + Sobel_Cal_R3C2 
+				--				+ Sobel_Cal_R3C3 + Sobel_Cal_R3C3 + Sobel_Cal_R3C3;
+				--$$$$$$$$$$$$$$$$$ Scharr Expression $$$$$$$$$$$$$$$$$--
 
 				if sobel_x_cc_1 >= sobel_x_cc_2 then
 					SB_XSCR <= sobel_x_cc_1 - sobel_x_cc_2;

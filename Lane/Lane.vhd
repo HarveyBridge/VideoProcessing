@@ -22,7 +22,7 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 use ieee.numeric_std.all;
-
+use ieee.math_real.all;
 use work.MyDataType.all;
 
 -- Uncomment the following library declaration if using
@@ -297,9 +297,22 @@ component LTP_Calculate is
 		);
 end component;
 
+---------------------|@@@@ | ----------->  H
+--Display Parameter--|@@@@ |
+---------------------|@@@@ |
+------ 640 x 480 ----|@@@@ v
+---------------------|@@@@ 
+-- Draw Judge Area --|@@@@ V
+
+constant Boundary_Vs : integer := 240;
+constant Boundary_Ve : integer := 430;
+constant Boundary_Hs : integer := 80;
+constant Boundary_He : integer := 600;
+
+
 begin
 
-
+--################################### Component Defination ###################################--
 VIDEO_IN2 : video_in
 		port map (
 				    clk_video  		=> clk_video,
@@ -425,7 +438,7 @@ Sobel_Cal_Functions: Sobel_Calculate
 --		LTP_R2C2_Encode_Bit2  	=> LTP_Edge_R2C2_Encode_Bit2,
 --		LTP_Value  				=> LTP_Edge_Value
 --		);
-
+--################################### Component Defination ###################################--
 
 --int <= CONV_INTEGER(std_logic(MSB downto LSB));
 --VGA-RGB-9bit----------------------------------------------------------------------------------------------------
@@ -450,20 +463,39 @@ elsif rising_edge(clk_video) then
 			
 			-- -- ((f_video_en = '0' and black_vga_en = '0') or (f_video_en = '1' and black_vga_en = '1'))
 		if ( cnt_h_sync_vga > 1 and cnt_h_sync_vga < 640 and cnt_v_sync_vga > 1 and cnt_v_sync_vga < 480)   then		
-
--- mark this to show full image
---			if  (f_video_en = '1' and black_vga_en = '1') then
-
--- count address and show sobel
 			buf_vga_Y_out_cnt <= buf_vga_Y_out_cnt + 1;	
-			--r_vga <= LTP_Edge_Value(buf_vga_Y_out_cnt)(7 downto 5);
-			--g_vga <= LTP_Edge_Value(buf_vga_Y_out_cnt)(7 downto 5);
-			--b_vga <= LTP_Edge_Value(buf_vga_Y_out_cnt)(7 downto 5);
-			r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
-			g_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
-			b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
-			
-			
+			if( (cnt_h_sync_vga > Boundary_Hs and cnt_h_sync_vga < Boundary_He)and(cnt_v_sync_vga > Boundary_Vs and cnt_v_sync_vga < Boundary_Ve) )then
+				if( (cnt_v_sync_vga > Boundary_Vs and cnt_v_sync_vga < (Boundary_Vs+2))or ((cnt_v_sync_vga > (Boundary_Ve-2)) and cnt_v_sync_vga < Boundary_Ve) )then
+					r_vga <= "111";
+					g_vga <= "000";
+					b_vga <= "000";
+				else					
+					if( (cnt_h_sync_vga > Boundary_Hs and cnt_h_sync_vga < (Boundary_Hs+2)) or  (cnt_h_sync_vga>(Boundary_He-2)  and cnt_h_sync_vga < Boundary_He) )then					
+						r_vga <= "000";
+						g_vga <= "111";							
+						b_vga <= "000";
+					else
+						-- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ Inner Special Range 150x200 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ --
+						--r_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+						--g_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+						--b_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+						--r_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
+						--g_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
+						--b_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
+						r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+						g_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+						b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);	
+						-- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ Inner Special Range 150x200 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ --
+					end if;
+				end if;
+			else
+				--r_vga <= LTP_Edge_Value(buf_vga_Y_out_cnt)(7 downto 5);
+				--g_vga <= LTP_Edge_Value(buf_vga_Y_out_cnt)(7 downto 5);
+				--b_vga <= LTP_Edge_Value(buf_vga_Y_out_cnt)(7 downto 5);
+				r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+				g_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+				b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+			end if;				
 		else
 			r_vga <= "000";
 			g_vga <= "000";
