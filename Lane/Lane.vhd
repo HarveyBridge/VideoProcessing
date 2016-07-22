@@ -63,6 +63,21 @@ port (
 end Lane;
 architecture Lane_arch of Lane is
 
+
+signal TxD_Buffer : std_logic_vector(7 downto 0);
+signal RxD_Buffer : std_logic_vector(7 downto 0);
+
+component My_miniUART_Zynq is
+	Port(
+			clk_video  : in std_logic;    
+			rst_system : in  std_logic;		
+    		RxD        : in std_logic;
+    		TxD        : out std_logic;
+    		TxD_Buffer : in std_logic_vector(7 downto 0);
+			RxD_Buffer : out std_logic_vector(7 downto 0)
+		);
+end component;
+
 signal f_video_en : std_logic:='Z'; --Field
 signal cnt_video_en : std_logic:='0';
 signal cnt_vga_en : std_logic:='0';

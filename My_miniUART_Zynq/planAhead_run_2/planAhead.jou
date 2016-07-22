@@ -1,0 +1,10 @@
+#-----------------------------------------------------------
+# PlanAhead v14.7 (64-bit)
+# Build 321239 by xbuild on Fri Sep 27 19:29:51 MDT 2013
+# Start of session at: Sat Jul 23 00:02:19 2016
+# Process ID: 8948
+# Log file: C:/Users/BowenHsu/Documents/VideoProcessing/My_miniUART_Zynq/planAhead_run_2/planAhead.log
+# Journal file: C:/Users/BowenHsu/Documents/VideoProcessing/My_miniUART_Zynq/planAhead_run_2/planAhead.jou
+#-----------------------------------------------------------
+start_gui
+source C:/Users/BowenHsu/Documents/VideoProcessing/My_miniUART_Zynq/pa.fromNetlist.tcl

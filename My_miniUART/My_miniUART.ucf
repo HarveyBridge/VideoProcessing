@@ -2,14 +2,14 @@
 #Created by Constraints Editor (xc3s400an-fgg400-4) - 2016/06/07
 #3s400an square
 NET "clk_video"  LOC = "V10"  ;
-NET "data_video<0>"  LOC = "Y6"  ;
-NET "data_video<1>"  LOC = "Y7"  ;
-NET "data_video<2>"  LOC = "T9"  ;
-NET "data_video<3>"  LOC = "U9"  ;
-NET "data_video<4>"  LOC = "V11"  ;
-NET "data_video<5>"  LOC = "V12"  ;
-NET "data_video<6>"  LOC = "T12"  ;
-NET "data_video<7>"  LOC = "R12"  ;
+#NET "data_video<0>"  LOC = "Y6"  ;
+#NET "data_video<1>"  LOC = "Y7"  ;
+#NET "data_video<2>"  LOC = "T9"  ;
+#NET "data_video<3>"  LOC = "U9"  ;
+#NET "data_video<4>"  LOC = "V11"  ;
+#NET "data_video<5>"  LOC = "V12"  ;
+#NET "data_video<6>"  LOC = "T12"  ;
+#NET "data_video<7>"  LOC = "R12"  ;
 #NET "h_sync_vga"  LOC = "E1"  ;
 #NET "v_sync_vga"  LOC = "D1"  ;
 #NET "nReset"  LOC = "E11"  ;

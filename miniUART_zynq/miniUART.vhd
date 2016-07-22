@@ -6,8 +6,9 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 entity My_miniUART is
     Port ( 
-
-
+    		clk_video  : in std_logic;    		
+    		RxD        : in std_logic;
+    		TxD        : out std_logic;
             --I2C-port----------------------------------------------------------------------------------------
 				--scl_slave : in  STD_LOGIC;
     --        sda_slave : inout  STD_LOGIC;
@@ -21,8 +22,8 @@ entity My_miniUART is
 				--td            : out std_logic;    -- RS232 transmitter line
 				--rd            : in  std_logic;    -- RS232 receiver line
 				--ethernet_cs_n : out std_logic;    -- Ethernet chip-enable			
-				RxD            : in std_logic;
-				TxD            : out std_logic;
+				
+				
 				
 			   --csss: in std_logic;
 			   --rs_Load: in std_logic;
@@ -30,7 +31,7 @@ entity My_miniUART is
 			
 			  --Video-port----------------------------------------------------------------------------------------
 			   --data_video : in std_logic_vector(7 downto 0);
-			   clk_video  : in std_logic;
+			   
 
 			 --  h_sync_vga : out std_logic;
 				--v_sync_vga : out std_logic;
@@ -116,7 +117,7 @@ begin
 
   -- UART register 0 is used to get data in and out of the UART module, so set the
   -- register address to 0 whenever the receiver has received a character or the
-  -- transmitter is ready to send a character.ก@
+  -- transmitter is ready to send a character.ยก@
   reg0 <= "0" & not(rd_rdy or td_rdy);
 
   -- Instantiation of the UART module.
