@@ -310,14 +310,14 @@ constant Boundary_Vs : integer := 240;
 constant Boundary_Ve : integer := 430;
 
 -- Width = 50 , Height = 60
-constant CaptureFrameLeft_Hs : integer := 85;
+constant CaptureFrameLeft_Hs : integer := 80; --85
 constant CaptureFrameLeft_He : integer := 135;
 constant CaptureFrameLeft_Vs : integer := 305; --335
-constant CaptureFrameLeft_Ve : integer := 365; --365
+constant CaptureFrameLeft_Ve : integer := 355; --365
 -- Width = 50 , Height = 60
 constant CaptureFrameRight_Hs : integer := 545;
-constant CaptureFrameRight_He : integer := 595;
-constant CaptureFrameRight_Vs : integer := 295;
+constant CaptureFrameRight_He : integer := 600; --595
+constant CaptureFrameRight_Vs : integer := 305;
 constant CaptureFrameRight_Ve : integer := 355;
 
 
@@ -514,19 +514,19 @@ elsif rising_edge(clk_video) then
 			if ( cnt_h_sync_vga > 1 and cnt_h_sync_vga < 641 )   then			
 				if ( cnt_h_sync_vga > 1 and cnt_h_sync_vga < 640 )   then			
 					buf_vga_Y_out_cnt <= buf_vga_Y_out_cnt + 1;		
-					if( (cnt_h_sync_vga > Draw_Cnt and cnt_h_sync_vga < (Draw_Cnt+3)) ) then -- draw m Line
+					if( (cnt_h_sync_vga > Draw_Cnt and cnt_h_sync_vga < (Draw_Cnt+10)) ) then -- draw m Line
 						r_vga <= "111";
 						g_vga <= "111";
 						b_vga <= "000";
 					else -- below big frame
 						if( (cnt_h_sync_vga > Boundary_Hs and cnt_h_sync_vga < Boundary_He)and(cnt_v_sync_vga > Boundary_Vs and cnt_v_sync_vga < Boundary_Ve) )then
 							if( (cnt_v_sync_vga > Boundary_Vs and cnt_v_sync_vga < (Boundary_Vs+2))or ((cnt_v_sync_vga > (Boundary_Ve-2)) and cnt_v_sync_vga < Boundary_Ve) )then
-								r_vga <= "111";
+								r_vga <= "111";		-- Draw Horizon Line
 								g_vga <= "000";
 								b_vga <= "000";
 							else					
 								if( (cnt_h_sync_vga > Boundary_Hs and cnt_h_sync_vga < (Boundary_Hs+2)) or  (cnt_h_sync_vga>(Boundary_He-2)  and cnt_h_sync_vga < Boundary_He) )then					
-									r_vga <= "000";
+									r_vga <= "000";	-- Draw Vertical Line
 									g_vga <= "111";							
 									b_vga <= "000";
 								else -- small frame ==> Left Frame
@@ -534,10 +534,10 @@ elsif rising_edge(clk_video) then
 										  (cnt_v_sync_vga > CaptureFrameLeft_Vs and cnt_v_sync_vga < CaptureFrameLeft_Ve) ) or 
 										( (cnt_h_sync_vga > CaptureFrameRight_Hs and cnt_h_sync_vga < CaptureFrameRight_He) and
 										  (cnt_v_sync_vga > CaptureFrameRight_Vs and cnt_v_sync_vga < CaptureFrameRight_Ve)))then										
-										if( ((cnt_v_sync_vga > CaptureFrameLeft_Vs)and(cnt_v_sync_vga < (CaptureFrameLeft_Vs+2)))or 
-											((cnt_v_sync_vga > (CaptureFrameLeft_Ve-2))and(cnt_v_sync_vga < CaptureFrameLeft_Ve))or
-											((cnt_v_sync_vga > CaptureFrameRight_Vs)and(cnt_v_sync_vga < (CaptureFrameRight_Vs+2)))or 
-											((cnt_v_sync_vga > (CaptureFrameRight_Ve-2))and(cnt_v_sync_vga < CaptureFrameRight_Ve)))then
+										if( ( ((cnt_v_sync_vga > CaptureFrameLeft_Vs)and(cnt_v_sync_vga < (CaptureFrameLeft_Vs+2)))		 or 
+											  ((cnt_v_sync_vga > (CaptureFrameLeft_Ve-2))and(cnt_v_sync_vga < CaptureFrameLeft_Ve)) ) 	 or
+											( ((cnt_v_sync_vga > CaptureFrameRight_Vs)and(cnt_v_sync_vga < (CaptureFrameRight_Vs+2)))	 or 
+											  ((cnt_v_sync_vga > (CaptureFrameRight_Ve-2))and(cnt_v_sync_vga < CaptureFrameRight_Ve)) ) )then
 											r_vga <= "111";
 											g_vga <= "111";
 											b_vga <= "000";
@@ -558,8 +558,8 @@ elsif rising_edge(clk_video) then
 												--g_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
 												--b_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
 												r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
-												g_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
-												b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);	
+												g_vga <= "111";
+												b_vga <= "111";
 												-- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ Inner Special Range 150x200 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ --		
 											end if;											
 										end if;
