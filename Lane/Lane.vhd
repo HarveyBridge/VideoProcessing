@@ -304,11 +304,35 @@ end component;
 ---------------------|@@@@ 
 -- Draw Judge Area --|@@@@ V
 
-constant Boundary_Vs : integer := 240;
-constant Boundary_Ve : integer := 430;
 constant Boundary_Hs : integer := 80;
 constant Boundary_He : integer := 600;
+constant Boundary_Vs : integer := 240;
+constant Boundary_Ve : integer := 430;
 
+-- Width = 50 , Height = 60
+constant CaptureFrameLeft_Hs : integer := 85;
+constant CaptureFrameLeft_He : integer := 135;
+constant CaptureFrameLeft_Vs : integer := 305; --335
+constant CaptureFrameLeft_Ve : integer := 365; --365
+-- Width = 50 , Height = 60
+constant CaptureFrameRight_Hs : integer := 545;
+constant CaptureFrameRight_He : integer := 595;
+constant CaptureFrameRight_Vs : integer := 295;
+constant CaptureFrameRight_Ve : integer := 355;
+
+
+
+
+-- Draw others Object --|
+signal Draw_Cnt : integer range 0 to 639:= 10;
+
+--signal Draw_PI : real:= MATH_PI;
+--signal Draw_k : real:= 150.0;
+--signal Draw_h : real:= 150.0;
+--signal Draw_a : real:= 1.0;
+--signal Draw_b : real:= 1.0;
+--signal Draw_PosX : real:= 0.0;
+--signal Draw_PosY : real:= 0.0;
 
 begin
 
@@ -440,9 +464,13 @@ Sobel_Cal_Functions: Sobel_Calculate
 --		);
 --################################### Component Defination ###################################--
 
+
+
 --int <= CONV_INTEGER(std_logic(MSB downto LSB));
 --VGA-RGB-9bit----------------------------------------------------------------------------------------------------
 process(rst_system, clk_video)
+
+
 begin
 if rst_system = '0' then
 	r_vga <= "000";
@@ -451,57 +479,157 @@ if rst_system = '0' then
 	buf_vga_Y_out_cnt <= 0;
 	-- show_frame_en <= '0';
 	-- available_frame_value <= 0;
+	Draw_Cnt <= 10;
 elsif rising_edge(clk_video) then
 			-- even  odd
-		-- if (((f_video_en = '0' and black_vga_en = '0') or (f_video_en = '1' and black_vga_en = '1')) and cnt_h_sync_vga > 1 and cnt_h_sync_vga < 640 and cnt_v_sync_vga > 1 and cnt_v_sync_vga < 480)   then
-				
+		-- if (((f_video_en = '0' and black_vga_en = '0') or (f_video_en = '1' and black_vga_en = '1')) and cnt_h_sync_vga > 1 and cnt_h_sync_vga < 640 and cnt_v_sync_vga > 1 and cnt_v_sync_vga < 480)   then			
+
 				
 			-- r_vga <= buf_vga_Y2(buf_vga_Y_out_cnt)(7 downto 5);
 			-- g_vga <= buf_vga_Y2(buf_vga_Y_out_cnt)(7 downto 5);
 			-- b_vga <= buf_vga_Y2(buf_vga_Y_out_cnt)(7 downto 5);
-			
-			
+
+--############################################### Note ###############################################--	
+		    --cnt_h_sync_vga :out integer range 0 to 857;
+            --cnt_v_sync_vga :out integer range 0 to 524;
+            --constant Boundary_Vs : integer := 240;
+            --constant Boundary_Ve : integer := 430;
+            --constant Boundary_Hs : integer := 80;
+            --constant Boundary_He : integer := 600;
+
+            -- Width = 50 , Height = 60
+            --constant CaptureFrameLeft_Hs : integer := 85;
+            --constant CaptureFrameLeft_He : integer := 135;
+            --constant CaptureFrameLeft_Vs : integer := 305; --335
+            --constant CaptureFrameLeft_Ve : integer := 365; --365
+            ---- Width = 50 , Height = 30
+            --constant CaptureFrameRight_Hs : integer := 545;
+            --constant CaptureFrameRight_He : integer := 595;
+            --constant CaptureFrameRight_Vs : integer := 395;
+            --constant CaptureFrameRight_Ve : integer := 425;
+--############################################### Note ###############################################--		
 			-- -- ((f_video_en = '0' and black_vga_en = '0') or (f_video_en = '1' and black_vga_en = '1'))
-		if ( cnt_h_sync_vga > 1 and cnt_h_sync_vga < 640 and cnt_v_sync_vga > 1 and cnt_v_sync_vga < 480)   then		
-			buf_vga_Y_out_cnt <= buf_vga_Y_out_cnt + 1;	
-			if( (cnt_h_sync_vga > Boundary_Hs and cnt_h_sync_vga < Boundary_He)and(cnt_v_sync_vga > Boundary_Vs and cnt_v_sync_vga < Boundary_Ve) )then
-				if( (cnt_v_sync_vga > Boundary_Vs and cnt_v_sync_vga < (Boundary_Vs+2))or ((cnt_v_sync_vga > (Boundary_Ve-2)) and cnt_v_sync_vga < Boundary_Ve) )then
-					r_vga <= "111";
+		--if ( cnt_h_sync_vga > 1 and cnt_h_sync_vga < 640 and cnt_v_sync_vga > 1 and cnt_v_sync_vga < 480)   then	
+		if ( cnt_v_sync_vga > 1 and cnt_v_sync_vga < 480)   then	
+			if ( cnt_h_sync_vga > 1 and cnt_h_sync_vga < 641 )   then			
+				if ( cnt_h_sync_vga > 1 and cnt_h_sync_vga < 640 )   then			
+					buf_vga_Y_out_cnt <= buf_vga_Y_out_cnt + 1;		
+					if( (cnt_h_sync_vga > Draw_Cnt and cnt_h_sync_vga < (Draw_Cnt+3)) ) then -- draw m Line
+						r_vga <= "111";
+						g_vga <= "111";
+						b_vga <= "000";
+					else -- below big frame
+						if( (cnt_h_sync_vga > Boundary_Hs and cnt_h_sync_vga < Boundary_He)and(cnt_v_sync_vga > Boundary_Vs and cnt_v_sync_vga < Boundary_Ve) )then
+							if( (cnt_v_sync_vga > Boundary_Vs and cnt_v_sync_vga < (Boundary_Vs+2))or ((cnt_v_sync_vga > (Boundary_Ve-2)) and cnt_v_sync_vga < Boundary_Ve) )then
+								r_vga <= "111";
+								g_vga <= "000";
+								b_vga <= "000";
+							else					
+								if( (cnt_h_sync_vga > Boundary_Hs and cnt_h_sync_vga < (Boundary_Hs+2)) or  (cnt_h_sync_vga>(Boundary_He-2)  and cnt_h_sync_vga < Boundary_He) )then					
+									r_vga <= "000";
+									g_vga <= "111";							
+									b_vga <= "000";
+								else -- small frame ==> Left Frame
+									if( ( (cnt_h_sync_vga > CaptureFrameLeft_Hs and cnt_h_sync_vga < CaptureFrameLeft_He)   and
+										  (cnt_v_sync_vga > CaptureFrameLeft_Vs and cnt_v_sync_vga < CaptureFrameLeft_Ve) ) or 
+										( (cnt_h_sync_vga > CaptureFrameRight_Hs and cnt_h_sync_vga < CaptureFrameRight_He) and
+										  (cnt_v_sync_vga > CaptureFrameRight_Vs and cnt_v_sync_vga < CaptureFrameRight_Ve)))then										
+										if( ((cnt_v_sync_vga > CaptureFrameLeft_Vs)and(cnt_v_sync_vga < (CaptureFrameLeft_Vs+2)))or 
+											((cnt_v_sync_vga > (CaptureFrameLeft_Ve-2))and(cnt_v_sync_vga < CaptureFrameLeft_Ve))or
+											((cnt_v_sync_vga > CaptureFrameRight_Vs)and(cnt_v_sync_vga < (CaptureFrameRight_Vs+2)))or 
+											((cnt_v_sync_vga > (CaptureFrameRight_Ve-2))and(cnt_v_sync_vga < CaptureFrameRight_Ve)))then
+											r_vga <= "111";
+											g_vga <= "111";
+											b_vga <= "000";
+										else
+											if( ((cnt_h_sync_vga > CaptureFrameLeft_Hs)and(cnt_h_sync_vga < (CaptureFrameLeft_Hs+2)))or 
+												((cnt_h_sync_vga > (CaptureFrameLeft_He-2))and(cnt_h_sync_vga < CaptureFrameLeft_He))or
+												((cnt_h_sync_vga > CaptureFrameRight_Hs)and(cnt_h_sync_vga < (CaptureFrameRight_Hs+2)))or 
+												((cnt_h_sync_vga > (CaptureFrameRight_He-2))and(cnt_h_sync_vga < CaptureFrameRight_He)))then
+												r_vga <= "111";
+												g_vga <= "000";
+												b_vga <= "111";
+											else -- else area ==> Left Frame Data
+												-- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ Inner Special Range 150x200 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ --
+												--r_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+												--g_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+												--b_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+												--r_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
+												--g_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
+												--b_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
+												r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+												g_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+												b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);	
+												-- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ Inner Special Range 150x200 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ --		
+											end if;											
+										end if;
+									else
+										r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+										g_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+										b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);	
+									end if;		
+									-- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+									---- below small frame ==> Right Frame
+									--if( (cnt_h_sync_vga > CaptureFrameRight_Hs and cnt_h_sync_vga < CaptureFrameRight_He)and(cnt_v_sync_vga > CaptureFrameRight_Vs and cnt_v_sync_vga < CaptureFrameRight_Ve) )then
+									--	if( ((cnt_v_sync_vga > CaptureFrameRight_Vs)and(cnt_v_sync_vga < (CaptureFrameRight_Vs+2))) or ((cnt_v_sync_vga > (CaptureFrameRight_Ve-2))and(cnt_v_sync_vga < CaptureFrameRight_Ve)) ) then
+									--		r_vga <= "000";
+									--		g_vga <= "111";
+									--		b_vga <= "111";
+									--	else
+									--		if( ((cnt_h_sync_vga > CaptureFrameRight_Hs)and(cnt_h_sync_vga < (CaptureFrameRight_Hs+2))) or ((cnt_h_sync_vga > (CaptureFrameRight_He-2))and(cnt_h_sync_vga < CaptureFrameRight_He)) ) then
+									--			r_vga <= "111";
+									--			g_vga <= "111";
+									--			b_vga <= "000";
+									--		else										
+									--			-- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ Inner Special Range 150x200 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ --
+									--			--r_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+									--			--g_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+									--			--b_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+									--			--r_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
+									--			--g_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
+									--			--b_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
+									--			r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+									--			g_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+									--			b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);	
+									--			-- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ Inner Special Range 150x200 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ --
+									--		end if;
+									--	end if;
+									--else
+									--	r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+									--	g_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+									--	b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);	
+									--end if;							
+								end if;
+							end if;
+						else
+							r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+							g_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+							b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+						end if;
+					end if;								
+				else			
+					r_vga <= "000";
 					g_vga <= "000";
 					b_vga <= "000";
-				else					
-					if( (cnt_h_sync_vga > Boundary_Hs and cnt_h_sync_vga < (Boundary_Hs+2)) or  (cnt_h_sync_vga>(Boundary_He-2)  and cnt_h_sync_vga < Boundary_He) )then					
-						r_vga <= "000";
-						g_vga <= "111";							
-						b_vga <= "000";
+					buf_vga_Y_out_cnt <= 0;
+					if(Draw_Cnt = 639)then
+						Draw_Cnt <= 10;
 					else
-						-- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ Inner Special Range 150x200 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ --
-						--r_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
-						--g_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
-						--b_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
-						--r_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
-						--g_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
-						--b_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
-						r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
-						g_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
-						b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);	
-						-- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ Inner Special Range 150x200 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ --
+						Draw_Cnt <= Draw_Cnt + 1;
 					end if;
 				end if;
 			else
-				--r_vga <= LTP_Edge_Value(buf_vga_Y_out_cnt)(7 downto 5);
-				--g_vga <= LTP_Edge_Value(buf_vga_Y_out_cnt)(7 downto 5);
-				--b_vga <= LTP_Edge_Value(buf_vga_Y_out_cnt)(7 downto 5);
-				r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
-				g_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
-				b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+				r_vga <= "000";
+				g_vga <= "000";
+				b_vga <= "000";
+				buf_vga_Y_out_cnt <= 0;
 			end if;				
 		else
 			r_vga <= "000";
 			g_vga <= "000";
 			b_vga <= "000";
 			buf_vga_Y_out_cnt <= 0;
-
+			Draw_Cnt <= 10;
 		end if;
 --	
 end if;

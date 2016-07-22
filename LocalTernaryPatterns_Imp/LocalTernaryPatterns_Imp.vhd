@@ -405,6 +405,9 @@ signal Display_EN		: std_logic:='0';
 --Hand Threshold--|
 ------------------|
 
+
+
+
 ------------------------------------|
 --Sobel_Cal Matrix = Matrix Buffer--|
 ------------------------------------|
