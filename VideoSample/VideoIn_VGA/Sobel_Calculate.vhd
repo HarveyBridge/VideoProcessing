@@ -148,7 +148,7 @@ else
 -- sum  X_sobel  &  Y_sobel
 				SB_SUM <= "00000000000"+SB_XSCR+SB_YSCR;
 -- put SUM_sobel to SB_buf_redata(0~640) SB_SUM 10 downto 0 9bits + 9bits							
-				if SB_SUM > Encode_Threshold then --"0001 1111 1111"
+				if SB_SUM > Encode_Threshold then
 					SB_buf_redata(redata_cnt) <= "11111111";
 				else
 					SB_buf_redata(redata_cnt) <= SB_SUM(9 downto 2); 

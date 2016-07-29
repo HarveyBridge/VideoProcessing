@@ -1,0 +1,27 @@
+# NET "scl"           LOC = Y11  | IOSTANDARD=LVCMOS33 | PULLUP;  # "JA1"
+# NET "sda"           LOC = AA11 | IOSTANDARD=LVCMOS33 | PULLUP;  # "JA2"
+NET "clk_video"           LOC = AA9  | IOSTANDARD=LVCMOS33;  # "JA4"
+NET "rst_system"           LOC = M15  | IOSTANDARD=LVCMOS18;  # "SW7"
+
+NET "rxd"         LOC = W7   | IOSTANDARD=LVCMOS33;  # "JD1_N"
+NET "txd"         LOC = V7   | IOSTANDARD=LVCMOS33;  # "JD1_P"
+
+ 
+NET "TestBuffer[0]"           LOC = T22  | IOSTANDARD=LVCMOS33;  # "LD0"
+NET "TestBuffer[1]"           LOC = T21  | IOSTANDARD=LVCMOS33;  # "LD1"
+NET "TestBuffer[2]"           LOC = U22  | IOSTANDARD=LVCMOS33;  # "LD2"
+NET "TestBuffer[3]"           LOC = U21  | IOSTANDARD=LVCMOS33;  # "LD3"
+NET "TestBuffer[4]"           LOC = V22  | IOSTANDARD=LVCMOS33;  # "LD4"
+NET "TestBuffer[5]"           LOC = W22  | IOSTANDARD=LVCMOS33;  # "LD5"
+NET "TestBuffer[6]"           LOC = U19  | IOSTANDARD=LVCMOS33;  # "LD6"
+NET "TestBuffer[7]"           LOC = U14  | IOSTANDARD=LVCMOS33;  # "LD7"
+# NET "DebugOut[0]"           LOC = W12  | IOSTANDARD=LVCMOS33;  # "JB1"
+# NET "DebugOut[1]"           LOC = W11  | IOSTANDARD=LVCMOS33;  # "JB2"
+# NET "DebugOut[2]"           LOC = V10  | IOSTANDARD=LVCMOS33;  # "JB3"
+# NET "DebugOut[3]"           LOC = W8   | IOSTANDARD=LVCMOS33;  # "JB4"
+# NET "DebugOut[4]"           LOC = V12  | IOSTANDARD=LVCMOS33;  # "JB7"
+# NET "DebugOut[5]"           LOC = W10  | IOSTANDARD=LVCMOS33;  # "JB8"
+# NET "DebugOut[6]"           LOC = V9   | IOSTANDARD=LVCMOS33;  # "JB9"
+# NET "DebugOut[7]"          LOC = V8   | IOSTANDARD=LVCMOS33;  # "JB10"
+
+# NET "DebugPulse"         LOC = W7   | IOSTANDARD=LVCMOS33;  # "JD1_N"

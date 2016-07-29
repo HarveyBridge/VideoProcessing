@@ -2,9 +2,9 @@
 -- Company: 
 -- Engineer: 
 -- 
--- Create Date:    14:25:14 07/20/2016 
+-- Create Date:    22:09:32 07/26/2016 
 -- Design Name: 
--- Module Name:    Lane - Behavioral 
+-- Module Name:    VideoSample - Behavioral 
 -- Project Name: 
 -- Target Devices: 
 -- Tool versions: 
@@ -34,12 +34,12 @@ use work.MyDataType.all;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity Lane is
+entity VideoSample is
 port (
-				scl : out std_logic;
-				sda : inout std_logic;
-			   data_video : in std_logic_vector(7 downto 0);
-			   clk_video : in std_logic;
+			scl : out std_logic;
+			sda : inout std_logic;
+			data_video : in std_logic_vector(7 downto 0);
+			clk_video : in std_logic;
 			--Video-port----------------------------------------------------------------------------------------
 			--VGA-port----------------------------------------------------------------------------------------
 			h_sync_vga : out std_logic;
@@ -48,8 +48,8 @@ port (
 			g_vga : out  STD_LOGIC_vector(2 downto 0);
 			b_vga : out  STD_LOGIC_vector(2 downto 0);
 				
-			DebugMux	:in std_logic_vector(3 downto 0);
-			ImageSelect : in std_logic;
+			--DebugMux	:in std_logic_vector(3 downto 0);
+			--ImageSelect : in std_logic;
 			--## miniUART ##--
 			RxD        : in std_logic;
     		TxD        : out std_logic;
@@ -64,8 +64,8 @@ port (
                 ---
                 rst_system : in  STD_LOGIC
 );
-end Lane;
-architecture Lane_arch of Lane is
+end VideoSample;
+architecture VideoSample_arch of VideoSample is
 
 
 signal TxD_Buffer : std_logic_vector(7 downto 0); 
@@ -100,6 +100,8 @@ signal sync_vga_en : std_logic:='0';
 --VGA-8bit-------------------------------------------------------------------------------------------------------
 signal buf_vga_state : std_logic_vector(1 downto 0):="00";
 signal buf_vga_state1 : std_logic_vector(1 downto 0):="00";
+
+
 
 type Array_Y is ARRAY (integer range 0 to 639) of std_logic_vector(7 downto 0);
 signal buf_vga_Y : Array_Y;
@@ -147,6 +149,10 @@ component i2c
          );
 
 end component;
+
+
+
+
 
 --state-------------------------------------------------------------------------------------------------------
 signal range_total_cnt : integer range 0 to 1289:=0;
@@ -310,80 +316,6 @@ component LTP_Calculate is
 		);
 end component;
 
-----------------------------------|
---Erosion Matrix = Matrix Buffer--|
-----------------------------------|
-
-signal Erosion_Cal_Column_1 : Matrix_Buf_1Bit;
-signal Erosion_Cal_R1C1 : std_logic:='0';
-signal Erosion_Cal_R2C1 : std_logic:='0';
-signal Erosion_Cal_R3C1 : std_logic:='0';
-
-signal Erosion_Cal_Column_2 : Matrix_Buf_1Bit;
-signal Erosion_Cal_R1C2 : std_logic:='0';
-signal Erosion_Cal_R2C2 : std_logic:='0';
-signal Erosion_Cal_R3C2 : std_logic:='0';
-
-signal Erosion_Cal_Column_3 : Matrix_Buf_1Bit;
-signal Erosion_Cal_R1C3 : std_logic:='0';
-signal Erosion_Cal_R2C3 : std_logic:='0';
-signal Erosion_Cal_R3C3 : std_logic:='0';
-signal Erosion_Cal_Buf_Cnt	 : integer range 0 to 639:=0;
-
-component BufferToMatrix3x3_1Bit is
-	Port(
-			clk_video	: in std_logic;
-			rst_system	: in std_logic;
-			data_video 	: in std_logic;
-			buf_vga_en	: in std_logic;	
-			buf_data_state: in std_logic_vector(1 downto 0);
-			Sobel_Cal_en : in std_logic;
-			cnt_video_hsync : in  integer range 0 to 1715;
-			Matrix_R1C1	: buffer std_logic;
-			Matrix_R2C1	: buffer std_logic;
-			Matrix_R3C1	: buffer std_logic;
-			Matrix_R1C2	: buffer std_logic;
-			Matrix_R2C2	: buffer std_logic;
-			Matrix_R3C2	: buffer std_logic;
-			Matrix_R1C3	: buffer std_logic;
-			Matrix_R2C3	: buffer std_logic;
-			Matrix_R3C3	: buffer std_logic;
-			Matrix_Buf_Cnt	 : buffer integer range 0 to 639:=0
-	);
-end component;
-
-signal Sobel_TwoValue : std_logic:='0';
-signal Erosion_Cnt  : integer range 0 to 639:=0;
-signal Erosion_Bit  : std_logic;
-signal Erosion_Value: Matrix_Buf_1Bit;
-
-component Erosion_Calculate is
-	Port(
-			clk_video				: in std_logic;
-			rst_system				: in std_logic;		
-			buf_sobel_cc_en 		: in std_logic;		
-			Sobel_Cal_en 			: in std_logic;					
-			Erosion_R1C1  			: in std_logic;
-			Erosion_R2C1  			: in std_logic;		
-			Erosion_R3C1  			: in std_logic;
-			Erosion_R1C2  			: in std_logic;
-			Erosion_R2C2  			: in std_logic;		
-			Erosion_R3C2  			: in std_logic;
-			Erosion_R1C3  			: in std_logic;
-			Erosion_R2C3  			: in std_logic;		
-			Erosion_R3C3  			: in std_logic;
-			Erosion_Cnt				: buffer integer range 0 to 639:=0;
-			Erosion_Bit 			: buffer std_logic;
-			Erosion_Value			: inout Matrix_Buf_1Bit
-		);
-end component;
-
-
---type Histogram is array (integer range 0 to 639) of std_logic_vector ((8-1) downto 0);
-signal His_Sobel: Histogram;
-signal His_Cnt	: integer range 0 to 639;	
-
-
 ---------------------|@@@@ | ----------->  H
 --Display Parameter--|@@@@ |
 ---------------------|@@@@ |
@@ -454,54 +386,54 @@ i2c_1 :i2c
                 sda => sda           
 			);
 
-Sobel_Cal_BTM3x3 : BufferToMatrix3x3
-	port map (
-		clk_video 		=> clk_video,
-		rst_system 		=> rst_system,		
-		buf_vga_en 		=> buf_vga_en,
-		buf_data_state 	=> buf_data_state,
-		cnt_video_hsync => cnt_video_hsync,
+--Sobel_Cal_BTM3x3 : BufferToMatrix3x3
+--	port map (
+--		clk_video 		=> clk_video,
+--		rst_system 		=> rst_system,		
+--		buf_vga_en 		=> buf_vga_en,
+--		buf_data_state 	=> buf_data_state,
+--		cnt_video_hsync => cnt_video_hsync,
 
-		data_video 		=> data_video(7 downto 0),
-		Matrix_R1C1 	=> Sobel_Cal_R1C1,
-		Matrix_R2C1 	=> Sobel_Cal_R2C1,
-		Matrix_R3C1 	=> Sobel_Cal_R3C1,
-		Matrix_R1C2 	=> Sobel_Cal_R1C2,
-		Matrix_R2C2 	=> Sobel_Cal_R2C2,
-		Matrix_R3C2 	=> Sobel_Cal_R3C2,
-		Matrix_R1C3 	=> Sobel_Cal_R1C3,
-		Matrix_R2C3 	=> Sobel_Cal_R2C3,
-		Matrix_R3C3 	=> Sobel_Cal_R3C3,
-		Matrix_Buf_Cnt 	=> Sobel_Cal_Buf_Cnt
-);
+--		data_video 		=> data_video(7 downto 0),
+--		Matrix_R1C1 	=> Sobel_Cal_R1C1,
+--		Matrix_R2C1 	=> Sobel_Cal_R2C1,
+--		Matrix_R3C1 	=> Sobel_Cal_R3C1,
+--		Matrix_R1C2 	=> Sobel_Cal_R1C2,
+--		Matrix_R2C2 	=> Sobel_Cal_R2C2,
+--		Matrix_R3C2 	=> Sobel_Cal_R3C2,
+--		Matrix_R1C3 	=> Sobel_Cal_R1C3,
+--		Matrix_R2C3 	=> Sobel_Cal_R2C3,
+--		Matrix_R3C3 	=> Sobel_Cal_R3C3,
+--		Matrix_Buf_Cnt 	=> Sobel_Cal_Buf_Cnt
+--);
 
 
-Sobel_Cal_Functions: Sobel_Calculate
-	port map(
-		clk_video 		=> clk_video,
-		rst_system 		=> rst_system,		
-		buf_vga_en 		=> buf_vga_en,
-		cnt_video_hsync => cnt_video_hsync,
-		buf_data_state 	=> buf_data_state,
-		buf_sobel_cc_en => buf_sobel_cc_en,
+--Sobel_Cal_Functions: Sobel_Calculate
+--	port map(
+--		clk_video 		=> clk_video,
+--		rst_system 		=> rst_system,		
+--		buf_vga_en 		=> buf_vga_en,
+--		cnt_video_hsync => cnt_video_hsync,
+--		buf_data_state 	=> buf_data_state,
+--		buf_sobel_cc_en => buf_sobel_cc_en,
 		
-		Sobel_Cal_R1C1  => Sobel_Cal_R1C1,
-		Sobel_Cal_R2C1  => Sobel_Cal_R2C1,
-		Sobel_Cal_R3C1  => Sobel_Cal_R3C1,
-		Sobel_Cal_R1C2  => Sobel_Cal_R1C2,
-		Sobel_Cal_R2C2  => Sobel_Cal_R2C2,
-		Sobel_Cal_R3C2  => Sobel_Cal_R3C2,		
-		Sobel_Cal_R1C3  => Sobel_Cal_R1C3,
-		Sobel_Cal_R2C3  => Sobel_Cal_R2C3,
-		Sobel_Cal_R3C3  => Sobel_Cal_R3C3,
-		Sobel_Cal_en	=> Sobel_Cal_en,
-		SB_XSCR 		=> SB_XSCR,
-		SB_YSCR 		=> SB_YSCR,
-		SB_SUM 			=> SB_SUM,
-		SB_buf_redata 	=> SB_buf_redata,
-		Encode_Threshold=> SB_Encode_Threshold,
-		redata_cnt 		=> redata_cnt
-		);
+--		Sobel_Cal_R1C1  => Sobel_Cal_R1C1,
+--		Sobel_Cal_R2C1  => Sobel_Cal_R2C1,
+--		Sobel_Cal_R3C1  => Sobel_Cal_R3C1,
+--		Sobel_Cal_R1C2  => Sobel_Cal_R1C2,
+--		Sobel_Cal_R2C2  => Sobel_Cal_R2C2,
+--		Sobel_Cal_R3C2  => Sobel_Cal_R3C2,		
+--		Sobel_Cal_R1C3  => Sobel_Cal_R1C3,
+--		Sobel_Cal_R2C3  => Sobel_Cal_R2C3,
+--		Sobel_Cal_R3C3  => Sobel_Cal_R3C3,
+--		Sobel_Cal_en	=> Sobel_Cal_en,
+--		SB_XSCR 		=> SB_XSCR,
+--		SB_YSCR 		=> SB_YSCR,
+--		SB_SUM 			=> SB_SUM,
+--		SB_buf_redata 	=> SB_buf_redata,
+--		Encode_Threshold=> SB_Encode_Threshold,
+--		redata_cnt 		=> redata_cnt
+--		);
 
 My_miniUART_F1:	My_miniUART_Zynq
 	port map (
@@ -512,64 +444,6 @@ My_miniUART_F1:	My_miniUART_Zynq
     		TxD_Buffer => TxD_Buffer,
 			RxD_Buffer => RxD_Buffer
 			);
-
-Erosion_MatrixBuf: BufferToMatrix3x3_1Bit
-	port map (
-			clk_video		=> clk_video,
-			rst_system		=> rst_system,			
-			buf_vga_en		=> buf_vga_en,
-			buf_data_state	=> buf_data_state,			
-			cnt_video_hsync => cnt_video_hsync,
-			Sobel_Cal_en 	=> Sobel_Cal_en,
-			
-			data_video 		=> Sobel_TwoValue,
-			Matrix_R1C1 	=> Erosion_Cal_R1C1,
-			Matrix_R2C1 	=> Erosion_Cal_R2C1,
-			Matrix_R3C1 	=> Erosion_Cal_R3C1,
-			Matrix_R1C2 	=> Erosion_Cal_R1C2,
-			Matrix_R2C2 	=> Erosion_Cal_R2C2,
-			Matrix_R3C2 	=> Erosion_Cal_R3C2,
-			Matrix_R1C3 	=> Erosion_Cal_R1C3,
-			Matrix_R2C3 	=> Erosion_Cal_R2C3,
-			Matrix_R3C3 	=> Erosion_Cal_R3C3,
-			Matrix_Buf_Cnt 	=> Erosion_Cal_Buf_Cnt 
-			);
-
-process(clk_video,rst_system)
-begin
-	if rst_system = '0' then
-		Sobel_TwoValue <= '0';
-	elsif rising_edge(clk_video) then
-		if((SB_buf_redata(redata_cnt) < x"FF") and (SB_buf_redata(redata_cnt) > x"3F"))then		
-			Sobel_TwoValue <= '1';
-		else
-			Sobel_TwoValue <= '0';
-		end if;
-	end if;
-end process;
-
-
-ErosionCalculate: Erosion_Calculate
-	port map(
-			clk_video		=> clk_video,
-			rst_system		=> rst_system,
-			buf_sobel_cc_en => buf_sobel_cc_en,
-			Sobel_Cal_en 	=> Sobel_Cal_en,
-
-			Erosion_R1C1  	=> Erosion_Cal_R1C1,
-			Erosion_R2C1  	=> Erosion_Cal_R2C1,
-			Erosion_R3C1  	=> Erosion_Cal_R3C1,
-			Erosion_R1C2  	=> Erosion_Cal_R1C2,
-			Erosion_R2C2  	=> Erosion_Cal_R2C2,
-			Erosion_R3C2  	=> Erosion_Cal_R3C2,
-			Erosion_R1C3  	=> Erosion_Cal_R1C3,
-			Erosion_R2C3  	=> Erosion_Cal_R2C3,
-			Erosion_R3C3  	=> Erosion_Cal_R3C3,
-			Erosion_Cnt		=> Erosion_Cnt,
-			Erosion_Bit 	=> Erosion_Bit,
-			Erosion_Value	=> Erosion_Value
-		);
-
 --LTP_Edge_BTM3x3 : BufferToMatrix3x3
 --	port map (
 --		clk_video 		=> clk_video,
@@ -618,74 +492,50 @@ ErosionCalculate: Erosion_Calculate
 --		);
 --################################### Component Defination ###################################--
 
-
---HistogramAnalyse:process(rst_system,clk_video)
---begin
---if rst_system = '0' then
---	His_Cnt <= 0;
---elsif rising_edge(clk_video) then
-
---	for i in 0 to 255 loop
---		if SB_buf_redata(His_Cnt)(7 downto 0) = CONV_STD_LOGIC_VECTOR(i, 8) then
---			His_Sobel(i)(7 downto 0) <= His_Sobel(i)(7 downto 0) + 1;
---		end if;
---	end loop;
-	
-		
---	if His_Cnt = 639 then
---		His_Cnt <= 0;
---	else
---		His_Cnt <= His_Cnt + 1;
---	end if;
---end if;
---end process HistogramAnalyse;
-
-
---Display_VGA:process(rst_system, clk_video)
---begin
---if rst_system = '0' then
---	r_vga <= "000";
---	g_vga <= "000";
---	b_vga <= "000";
---	buf_vga_Y_out_cnt <= 0;	
---elsif rising_edge(clk_video) then
---	if cnt_v_sync_vga > 1 and cnt_v_sync_vga < 480 then	
---		if cnt_h_sync_vga > 1 and cnt_h_sync_vga < 640 then	
---			buf_vga_Y_out_cnt <= buf_vga_Y_out_cnt + 1;	
---			if( (cnt_h_sync_vga > 100) and (cnt_h_sync_vga < 360) ) then
---				for i in 0 to 255 loop
---					if( (cnt_h_sync_vga = (100+i)) and ( cnt_v_sync_vga > (480 - CONV_INTEGER(His_Sobel(i)(7 downto 0)))) and cnt_v_sync_vga < 480 )then					
---						r_vga <= "111";
---						g_vga <= "000";
---						b_vga <= "000";
---					else
---						r_vga <= "111";
---						g_vga <= "111";
---						b_vga <= "111";	
---					end if;
---				end loop;	
---			else				
---				r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
---				g_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
---				b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);								
---			end if;				
---		else
---			r_vga <= "000";
---			g_vga <= "000";
---			b_vga <= "000";
---			buf_vga_Y_out_cnt <= 0;
---		end if;
---	end if;
---end if;
---end process Display_VGA;
-----############################################### Display VGA ###############################################--
+--VGA-buffer-8bit------------------------------------------------------------------------------------------------
+process(rst_system, clk_video, buf_vga_en, cnt_video_hsync)
+begin
+if rst_system = '0' then
+	buf_vga_state <= "00";
+	buf_vga_Y_in_cnt <= 0;
+else
+	if rising_edge(clk_video) then
+		if (buf_vga_en = '1' and cnt_video_hsync < 1280) then
+			case buf_vga_state is
+				when "00" => buf_vga_state <= "01";
+				when "01" => buf_vga_state <= "10";
+								 buf_vga_Y2(buf_vga_Y_in_cnt) <= data_video(7 downto 0);
+								 if buf_vga_Y_in_cnt = 639 then
+									 buf_vga_Y_in_cnt <= 0;
+								 else
+									 buf_vga_Y_in_cnt <= buf_vga_Y_in_cnt + 1;
+								 end if;
+				when "10" => buf_vga_state <= "11";
+				when "11" => buf_vga_state <= "00";
+								 buf_vga_Y2(buf_vga_Y_in_cnt) <= data_video(7 downto 0);
+								 if buf_vga_Y_in_cnt = 639 then
+									 buf_vga_Y_in_cnt <= 0;
+								 else
+									 buf_vga_Y_in_cnt <= buf_vga_Y_in_cnt + 1;
+								 end if;
+				when others => null;
+			end case;
+		else
+			
+			buf_vga_state <= "00";
+			buf_vga_Y_in_cnt <= 0;
+		end if;
+	end if;
+end if;
+end process;
+--VGA-buffer-8bit------------------------------------------------------------------------------------------------
 
 
---std_logic_vector 	<= CONV_STD_LOGIC_VECTOR(int, BIT(s));
---int 				<= CONV_INTEGER(std_logic(MSB downto LSB));
--- Ÿäè»Šç”¨
+--int <= CONV_INTEGER(std_logic(MSB downto LSB));
 --VGA-RGB-9bit----------------------------------------------------------------------------------------------------
 process(rst_system, clk_video)
+
+
 begin
 if rst_system = '0' then
 	r_vga <= "000";
@@ -730,6 +580,7 @@ elsif rising_edge(clk_video) then
 			if ( cnt_h_sync_vga > 1 and cnt_h_sync_vga < 641 )   then			
 				if ( cnt_h_sync_vga > 1 and cnt_h_sync_vga < 640 )   then			
 					buf_vga_Y_out_cnt <= buf_vga_Y_out_cnt + 1;		
+					--if( (cnt_h_sync_vga > Draw_Cnt and cnt_h_sync_vga < (Draw_Cnt+10)) ) then -- draw m Line
 					if( cnt_h_sync_vga = Draw_Cnt ) then -- draw m Line
 						r_vga <= "111";
 						g_vga <= "111";
@@ -773,37 +624,24 @@ elsif rising_edge(clk_video) then
 												--r_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
 												--g_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
 												--b_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
-												TxD_Buffer <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 0);
-												r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+												TxD_Buffer <= buf_vga_Y2(buf_vga_Y_out_cnt)(7 downto 0);
+												r_vga <= buf_vga_Y2(buf_vga_Y_out_cnt)(7 downto 5);
 												g_vga <= "111";
 												b_vga <= "111";
 												-- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ Inner Special Range 150x200 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ --		
 											end if;											
 										end if;
 									else
-										if((SB_buf_redata(buf_vga_Y_out_cnt) < x"FF") and (SB_buf_redata(buf_vga_Y_out_cnt) > x"3F"))then
-											g_vga <= "111";
-											r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);										
-											b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
-										else
-											g_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
-											r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);										
-											b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
-										end if;	
-											
+										r_vga <= buf_vga_Y2(buf_vga_Y_out_cnt)(7 downto 5);
+										g_vga <= buf_vga_Y2(buf_vga_Y_out_cnt)(7 downto 5);
+										b_vga <= buf_vga_Y2(buf_vga_Y_out_cnt)(7 downto 5);	
 									end if;																	
 								end if;
 							end if;
 						else
-							if((SB_buf_redata(buf_vga_Y_out_cnt) < x"FF") and (SB_buf_redata(buf_vga_Y_out_cnt) > x"3F"))then
-								g_vga <= "111";
-								r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);										
-								b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
-							else
-								g_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
-								r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);										
-								b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
-							end if;
+							r_vga <= buf_vga_Y2(buf_vga_Y_out_cnt)(7 downto 5);
+							g_vga <= buf_vga_Y2(buf_vga_Y_out_cnt)(7 downto 5);
+							b_vga <= buf_vga_Y2(buf_vga_Y_out_cnt)(7 downto 5);
 						end if;
 					end if;								
 				else			
@@ -904,28 +742,29 @@ else
 end if;
 end process;
 --Buf-state---------------------------------------------------------------------------------------------------
-ThresholdSelect:process(DebugMux)
-begin
-	case DebugMux is --"0001 1111 1111"
-		when "0000"	=> SB_Encode_Threshold <= x"1FF";
-		when "0001"	=> SB_Encode_Threshold <= x"2FF";
-		when "0010"	=> SB_Encode_Threshold <= x"3FF";
-		when "0011"	=> SB_Encode_Threshold <= x"4FF";
-		when "0100"	=> SB_Encode_Threshold <= x"0FF";
-		when "0101"	=> SB_Encode_Threshold <= x"07F";
-		when "0110"	=> SB_Encode_Threshold <= x"03F";
-		when "0111"	=> SB_Encode_Threshold <= x"01F";
-		when "1000"	=> SB_Encode_Threshold <= x"00F";
-		when "1001"	=> SB_Encode_Threshold <= x"007";
-		when "1010"	=> SB_Encode_Threshold <= x"003";
-		when "1011"	=> SB_Encode_Threshold <= x"001";
-		when "1100"	=> SB_Encode_Threshold <= x"1AF";
-		when "1101"	=> SB_Encode_Threshold <= x"1BF";
-		when "1110"	=> SB_Encode_Threshold <= x"1CF";		
-		when "1111"	=> SB_Encode_Threshold <= x"1DF";	
-		when others	=> SB_Encode_Threshold <= x"1EF";
-	end case;
-end process ThresholdSelect;
+--ThresholdSelect:process(DebugMux)
+--begin
+--	case DebugMux is --"0001 1111 1111"
+--		when "0000"	=> SB_Encode_Threshold <= x"1FF";
+--		when "0001"	=> SB_Encode_Threshold <= x"2FF";
+--		when "0010"	=> SB_Encode_Threshold <= x"3FF";
+--		when "0011"	=> SB_Encode_Threshold <= x"4FF";
+--		when "0100"	=> SB_Encode_Threshold <= x"0FF";
+--		when "0101"	=> SB_Encode_Threshold <= x"07F";
+--		when "0110"	=> SB_Encode_Threshold <= x"03F";
+--		when "0111"	=> SB_Encode_Threshold <= x"01F";
+--		when "1000"	=> SB_Encode_Threshold <= x"00F";
+--		when "1001"	=> SB_Encode_Threshold <= x"007";
+--		when "1010"	=> SB_Encode_Threshold <= x"003";
+--		when "1011"	=> SB_Encode_Threshold <= x"001";
+--		when "1100"	=> SB_Encode_Threshold <= x"1AF";
+--		when "1101"	=> SB_Encode_Threshold <= x"1BF";
+--		when "1110"	=> SB_Encode_Threshold <= x"1CF";		
+--		when "1111"	=> SB_Encode_Threshold <= x"1DF";	
+--		when others	=> SB_Encode_Threshold <= x"1EF";
+--	end case;
+--end process ThresholdSelect;
 
-end Lane_arch;
+end VideoSample_arch;
+
 
