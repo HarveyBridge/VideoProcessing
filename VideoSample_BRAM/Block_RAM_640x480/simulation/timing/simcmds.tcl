@@ -59,6 +59,7 @@ wave add /Block_RAM_640x480_tb/status
       wave add  /Block_RAM_640x480_tb/Block_RAM_640x480_synth_inst/BMG_PORT/ADDRA
       wave add  /Block_RAM_640x480_tb/Block_RAM_640x480_synth_inst/BMG_PORT/DINA
       wave add  /Block_RAM_640x480_tb/Block_RAM_640x480_synth_inst/BMG_PORT/WEA
+      wave add  /Block_RAM_640x480_tb/Block_RAM_640x480_synth_inst/BMG_PORT/ENA
       wave add  /Block_RAM_640x480_tb/Block_RAM_640x480_synth_inst/BMG_PORT/DOUTA
 run all
 quit

@@ -43,10 +43,12 @@ LIBRARY XilinxCoreLib;
 ENTITY blk_mem_gen_v7_3 IS
   PORT (
     clka : IN STD_LOGIC;
+    rsta : IN STD_LOGIC;
+    ena : IN STD_LOGIC;
     wea : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
     addra : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-    dina : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
-    douta : OUT STD_LOGIC_VECTOR(15 DOWNTO 0)
+    dina : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
+    douta : OUT STD_LOGIC_VECTOR(7 DOWNTO 0)
   );
 END blk_mem_gen_v7_3;
 
@@ -55,10 +57,12 @@ ARCHITECTURE blk_mem_gen_v7_3_a OF blk_mem_gen_v7_3 IS
 COMPONENT wrapped_blk_mem_gen_v7_3
   PORT (
     clka : IN STD_LOGIC;
+    rsta : IN STD_LOGIC;
+    ena : IN STD_LOGIC;
     wea : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
     addra : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-    dina : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
-    douta : OUT STD_LOGIC_VECTOR(15 DOWNTO 0)
+    dina : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
+    douta : OUT STD_LOGIC_VECTOR(7 DOWNTO 0)
   );
 END COMPONENT;
 
@@ -79,7 +83,7 @@ END COMPONENT;
       c_enable_32bit_address => 0,
       c_family => "zynq",
       c_has_axi_id => 0,
-      c_has_ena => 0,
+      c_has_ena => 1,
       c_has_enb => 0,
       c_has_injecterr => 0,
       c_has_mem_output_regs_a => 0,
@@ -88,7 +92,7 @@ END COMPONENT;
       c_has_mux_output_regs_b => 0,
       c_has_regcea => 0,
       c_has_regceb => 0,
-      c_has_rsta => 0,
+      c_has_rsta => 1,
       c_has_rstb => 0,
       c_has_softecc_input_regs_a => 0,
       c_has_softecc_output_regs_b => 0,
@@ -103,8 +107,8 @@ END COMPONENT;
       c_prim_type => 1,
       c_read_depth_a => 16,
       c_read_depth_b => 16,
-      c_read_width_a => 16,
-      c_read_width_b => 16,
+      c_read_width_a => 8,
+      c_read_width_b => 8,
       c_rst_priority_a => "CE",
       c_rst_priority_b => "CE",
       c_rst_type => "SYNC",
@@ -123,8 +127,8 @@ END COMPONENT;
       c_write_depth_b => 16,
       c_write_mode_a => "WRITE_FIRST",
       c_write_mode_b => "WRITE_FIRST",
-      c_write_width_a => 16,
-      c_write_width_b => 16,
+      c_write_width_a => 8,
+      c_write_width_b => 8,
       c_xdevicefamily => "zynq"
     );
 -- synthesis translate_on
@@ -133,6 +137,8 @@ BEGIN
 U0 : wrapped_blk_mem_gen_v7_3
   PORT MAP (
     clka => clka,
+    rsta => rsta,
+    ena => ena,
     wea => wea,
     addra => addra,
     dina => dina,

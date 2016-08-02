@@ -54,10 +54,12 @@
 wcfg new
 isim set radix hex
 wave add /blk_mem_gen_v7_3_tb/status
+      wave add  /blk_mem_gen_v7_3_tb/blk_mem_gen_v7_3_synth_inst/BMG_PORT/RSTA
       wave add  /blk_mem_gen_v7_3_tb/blk_mem_gen_v7_3_synth_inst/BMG_PORT/CLKA
       wave add  /blk_mem_gen_v7_3_tb/blk_mem_gen_v7_3_synth_inst/BMG_PORT/ADDRA
       wave add  /blk_mem_gen_v7_3_tb/blk_mem_gen_v7_3_synth_inst/BMG_PORT/DINA
       wave add  /blk_mem_gen_v7_3_tb/blk_mem_gen_v7_3_synth_inst/BMG_PORT/WEA
+      wave add  /blk_mem_gen_v7_3_tb/blk_mem_gen_v7_3_synth_inst/BMG_PORT/ENA
       wave add  /blk_mem_gen_v7_3_tb/blk_mem_gen_v7_3_synth_inst/BMG_PORT/DOUTA
 run all
 quit

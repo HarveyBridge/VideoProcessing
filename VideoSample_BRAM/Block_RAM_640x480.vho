@@ -49,6 +49,7 @@ COMPONENT Block_RAM_640x480
   PORT (
     clka : IN STD_LOGIC;
     rsta : IN STD_LOGIC;
+    ena : IN STD_LOGIC;
     wea : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
     addra : IN STD_LOGIC_VECTOR(18 DOWNTO 0);
     dina : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
@@ -65,6 +66,7 @@ your_instance_name : Block_RAM_640x480
   PORT MAP (
     clka => clka,
     rsta => rsta,
+    ena => ena,
     wea => wea,
     addra => addra,
     dina => dina,

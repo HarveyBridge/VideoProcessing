@@ -124,7 +124,9 @@ ENTITY BMG_STIM_GEN IS
         CLK       : IN   STD_LOGIC;
         RST       : IN   STD_LOGIC;
         ADDRA     : OUT  STD_LOGIC_VECTOR(3 DOWNTO 0) := (OTHERS => '0'); 
-        DINA      : OUT  STD_LOGIC_VECTOR(15 DOWNTO 0) := (OTHERS => '0');
+        DINA      : OUT  STD_LOGIC_VECTOR(7 DOWNTO 0) := (OTHERS => '0');
+  
+        ENA       : OUT  STD_LOGIC :='0';
         WEA       : OUT  STD_LOGIC_VECTOR (0 DOWNTO 0) := (OTHERS => '0');
         CHECK_DATA: OUT  STD_LOGIC:='0'
   );
@@ -134,12 +136,12 @@ END BMG_STIM_GEN;
 ARCHITECTURE BEHAVIORAL OF BMG_STIM_GEN IS
 
    CONSTANT ZERO           : STD_LOGIC_VECTOR(31 DOWNTO 0)                := (OTHERS => '0');
-   CONSTANT DATA_PART_CNT_A: INTEGER:= DIVROUNDUP(16,16);
+   CONSTANT DATA_PART_CNT_A: INTEGER:= DIVROUNDUP(8,8);
    SIGNAL   WRITE_ADDR     : STD_LOGIC_VECTOR(31 DOWNTO 0)                := (OTHERS => '0');
    SIGNAL   WRITE_ADDR_INT : STD_LOGIC_VECTOR(3 DOWNTO 0)   := (OTHERS => '0');
    SIGNAL   READ_ADDR_INT  : STD_LOGIC_VECTOR(3 DOWNTO 0)   := (OTHERS => '0');
    SIGNAL   READ_ADDR      : STD_LOGIC_VECTOR(31 DOWNTO 0)                := (OTHERS => '0');
-   SIGNAL   DINA_INT       : STD_LOGIC_VECTOR(15 DOWNTO 0) := (OTHERS => '0');
+   SIGNAL   DINA_INT       : STD_LOGIC_VECTOR(7 DOWNTO 0) := (OTHERS => '0');
    SIGNAL   DO_WRITE       : STD_LOGIC                                    := '0';
    SIGNAL   DO_READ        : STD_LOGIC                                    := '0';
    SIGNAL   COUNT_NO       : INTEGER                                      :=0;
@@ -179,8 +181,8 @@ WR_ADDR_GEN_INST:ENTITY work.ADDR_GEN
 
 WR_DATA_GEN_INST:ENTITY work.DATA_GEN
    GENERIC MAP (
-     DATA_GEN_WIDTH => 16,
-     DOUT_WIDTH     => 16,
+     DATA_GEN_WIDTH => 8,
+     DOUT_WIDTH     => 8,
      DATA_PART_CNT  => DATA_PART_CNT_A,
      SEED           => 2
    )
@@ -238,6 +240,7 @@ BEGIN
   END GENERATE DFF_OTHERS;
 END GENERATE BEGIN_SHIFT_REG;
 
+   ENA <= DO_READ OR DO_WRITE ;
    WEA(0) <= IF_THEN_ELSE(DO_WRITE='1','1','0') ;
 
 END ARCHITECTURE;

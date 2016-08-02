@@ -16,6 +16,7 @@ quietly WaveActivateNextPane {} 0
       add wave -noupdate /Block_RAM_640x480_tb/Block_RAM_640x480_synth_inst/bmg_port/ADDRA
       add wave -noupdate /Block_RAM_640x480_tb/Block_RAM_640x480_synth_inst/bmg_port/DINA
       add wave -noupdate /Block_RAM_640x480_tb/Block_RAM_640x480_synth_inst/bmg_port/WEA
+      add wave -noupdate /Block_RAM_640x480_tb/Block_RAM_640x480_synth_inst/bmg_port/ENA
       add wave -noupdate /Block_RAM_640x480_tb/Block_RAM_640x480_synth_inst/bmg_port/DOUTA
 
 TreeUpdate [SetDefaultTree]

@@ -50,40 +50,52 @@ use ieee.math_real.all;
 --		addra	= "0000"
 --		dina 	= x"2222"
 --		LED 	= x"22"
-
-
+--==================================== New ====================================
+		--rsta	= '1' reset data => x"00"
+		--ena > rsta priority
+		--ena = '1' can use ( wea and rsta )
+		
 entity BlockRAM_Zynq is
 port(
-		clk_video 	: in std_logic;
+		clk_video 	: in std_logic;	
+		rsta		: in std_logic;	
+		ena		 	: in std_logic;	
 		wea			: in std_logic_vector(0 downto 0);
-		addra		: in std_logic_vector(3 downto 0);	
-		DebugMux	: in std_logic_vector(2 downto 0);
+		addra		: in std_logic_vector(2 downto 0);	
+		DebugMux	: in std_logic_vector(1 downto 0);
 		DataOut		: out std_logic_vector(7 downto 0)			
 	);
 end BlockRAM_Zynq;
 
 architecture BlockRAM_Zynq_arch of BlockRAM_Zynq is
 
-signal DataIn		: std_logic_vector(15 downto 0):=x"1234";
-signal DataOut_sig 	: std_logic_vector(15 downto 0);
+signal DataIn		: std_logic_vector(7 downto 0):=x"78";
+signal DataOut_sig 	: std_logic_vector(7 downto 0);
+signal addr 		: std_logic_vector(3 downto 0);
 component blk_mem_gen_v7_3 IS
   port (
     	clka 	: IN STD_LOGIC;
+    	rsta 	: IN STD_LOGIC;
+    	ena 	: IN STD_LOGIC;
     	wea 	: IN STD_LOGIC_VECTOR(0 DOWNTO 0);
     	addra 	: IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-    	dina 	: IN STD_LOGIC_VECTOR(15 DOWNTO 0);
-    	douta 	: OUT STD_LOGIC_VECTOR(15 DOWNTO 0)
+    	dina 	: IN STD_LOGIC_VECTOR(7 DOWNTO 0);
+    	douta 	: OUT STD_LOGIC_VECTOR(7 DOWNTO 0)
   );
 end component;
 
 begin
 DataOut(7 downto 0) <= DataOut_sig(7 downto 0);
+addr(2 downto 0) <= addra;
+addr(3) <= '0';
 
 BlockRAM_1:blk_mem_gen_v7_3
 	port map(
 		clka 	=> clk_video,
-    	wea 	=> wea,
-    	addra 	=> addra,
+		rsta	=> rsta,
+    	wea 	=> wea,    	
+    	ena		=> ena,
+    	addra 	=> addr,
     	dina 	=> DataIn,
     	douta 	=> DataOut_sig
 		);
@@ -91,15 +103,11 @@ BlockRAM_1:blk_mem_gen_v7_3
 SelectData:process(DebugMux)
 begin
 	case DebugMux is --"0001 1111 1111"
-		when "000"	=> DataIn <= x"5678";
-		when "001"	=> DataIn <= x"1111";
-		when "010"	=> DataIn <= x"2222";
-		when "011"	=> DataIn <= x"3333";
-		when "100"	=> DataIn <= x"4444";
-		when "101"	=> DataIn <= x"5555";
-		when "110"	=> DataIn <= x"6666";
-		when "111"	=> DataIn <= x"7777";		
-		when others	=> DataIn <= x"FFFF";
+		when "00"	=> DataIn <= x"78";
+		when "01"	=> DataIn <= x"12";
+		when "10"	=> DataIn <= x"34";
+		when "11"	=> DataIn <= x"5A";		
+		when others	=> DataIn <= x"FF";
 	end case;
 end process SelectData;
 end BlockRAM_Zynq_arch;

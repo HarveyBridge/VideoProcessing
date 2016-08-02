@@ -66,24 +66,26 @@ port (
 );
 end VideoSample;
 architecture VideoSample_arch of VideoSample is
-
+signal BR_PicCnt		: integer range 0 to 5:=0;
 signal BR_Sync			: std_logic:='0';
+signal BR_Enable		: std_logic:='0';
+signal BR_Enable_in		: std_logic:='0';
+signal BR_Enable_VGA	: std_logic:='0';
 signal BR_WriteHigh		: std_logic_vector(0 downto 0):="0";
-signal BR_WriteHigh_in	: std_logic_vector(0 downto 0):="0";
-signal BR_WriteHigh_VGA	: std_logic_vector(0 downto 0):="0";
-signal BR_Address		: std_logic_vector(18 downto 0):="0000000000000000000";
 signal BR_DataOut		: std_logic_vector(7 downto 0):="00000000";
+signal BR_Address		: std_logic_vector(18 downto 0):="0000000000000000000";
 signal BR_Address_in	: std_logic_vector(18 downto 0):="0000000000000000000";
 signal BR_Address_VGA	: std_logic_vector(18 downto 0):="0000000000000000000";
 
 component Block_RAM_640x480 is 
-	port(
-			clka 	: IN STD_LOGIC;
-			rsta 	: IN STD_LOGIC;
-			wea 	: IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-			addra 	: IN STD_LOGIC_VECTOR(18 DOWNTO 0);
-			dina 	: IN STD_LOGIC_VECTOR(7 DOWNTO 0);
-			douta 	: OUT STD_LOGIC_VECTOR(7 DOWNTO 0)
+	port(			
+			clka : IN STD_LOGIC;
+			rsta : IN STD_LOGIC;
+			ena : IN STD_LOGIC;
+			wea : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+			addra : IN STD_LOGIC_VECTOR(18 DOWNTO 0);
+			dina : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
+			douta : OUT STD_LOGIC_VECTOR(7 DOWNTO 0)
 		);
 end component;
 
@@ -409,6 +411,7 @@ Block_RAM_1: Block_RAM_640x480
 	port map(
 			clka 	=> clk_video,
 			rsta 	=> not rst_system,
+			ena		=> BR_Enable,
 			wea 	=> BR_WriteHigh(0 downto 0),
 			addra 	=> BR_Address,
 			dina 	=> data_video(7 downto 0),
@@ -418,12 +421,14 @@ process(BR_Sync)
 begin
 	case BR_Sync is
 		when '0' => 
-			BR_Address 				<= BR_Address_in;
-			BR_WriteHigh(0 downto 0)<= BR_WriteHigh_in;
+			BR_Address 	<= BR_Address_in;
+			BR_Enable 	<= BR_Enable_in;
 		when '1' => 
-			BR_Address 				<= BR_Address_VGA;
-			BR_WriteHigh(0 downto 0)<= "0";			
-		when others => BR_Address <= BR_Address_in;
+			BR_Address 	<= BR_Address_VGA;
+			BR_Enable 	<= BR_Enable_VGA;		
+		when others => 
+			BR_Address 	<= BR_Address_in;
+			BR_Enable 	<= BR_Enable_in;
 	end case;
 end process;
 --Sobel_Cal_BTM3x3 : BufferToMatrix3x3
@@ -532,56 +537,71 @@ My_miniUART_F1:	My_miniUART_Zynq
 --		);
 --################################### Component Defination ###################################--
 
-process(rst_system, clk_video, buf_vga_en, cnt_video_hsync)
+process(rst_system, clk_video)
 begin
 if rst_system = '0' then
 	buf_vga_state <= "00";
 	buf_vga_Y_in_cnt <= 0;
+	BR_Enable_in 	<= '0';
+	BR_WriteHigh(0 downto 0) <= "0";
+	BR_Address_in <= "0000000000000000000";
+	BR_PicCnt <= 0;
+	BR_Sync <= '0';
 else
 	if rising_edge(clk_video) then
 		if (buf_vga_en = '1' and cnt_video_hsync < 1280) then
 			case buf_vga_state is
-				when "00" => buf_vga_state <= "01";
-						BR_WriteHigh_in(0 downto 0) <= "0";
-						if BR_Address_in 	= "1001011000000000000" then -- address = 640 x 480 = 307200
-						 	BR_Address_in <= "0000000000000000000";
-						 	--BR_Sync <= '1';
-						else
-						 	BR_Address_in <= BR_Address_in;
-						end if;
-				when "01" => buf_vga_state <= "10";
-						BR_WriteHigh_in(0 downto 0) <= "1";
-						if BR_Address_in 	= "1001011000000000000" then -- address = 640 x 480 = 307200
-						 	BR_Address_in <= "0000000000000000000";
-						 	--BR_Sync <= '1';
-						else
-						 	BR_Address_in <= BR_Address_in + '1';
-						end if;						
-				when "10" => buf_vga_state <= "11";
-						BR_WriteHigh_in(0 downto 0) <= "0";
-						if BR_Address_in 	= "1001011000000000000" then -- address = 640 x 480 = 307200
-						 	BR_Address_in <= "0000000000000000000";
-						 	--BR_Sync <= '1';
-						else
-						 	BR_Address_in <= BR_Address_in;
-						end if;
-				when "11" => buf_vga_state <= "00";
-						BR_WriteHigh_in(0 downto 0) <= "1";
-						if BR_Address_in 	= "1001011000000000000" then -- address = 640 x 480 = 307200
-						 	BR_Address_in <= "0000000000000000000";
-						 	--BR_Sync <= '1';
-						else
-						 	BR_Address_in <= BR_Address_in + '1';
-						end if;
+				when "00"	=> 	buf_vga_state 	<= "01";
+								BR_Enable_in 	<= '0';
+								BR_WriteHigh(0 downto 0) <= "0";
+				when "01" 	=> 	buf_vga_state 	<= "10";
+								BR_Enable_in 	<= '1';
+								BR_WriteHigh(0 downto 0) <= "1";
+								if BR_Address_in = "1001010111111111111" then -- address = 640 x 480 = 307200
+								 	BR_Address_in <= "0000000000000000000";
+								 	if BR_PicCnt = 1 then
+								 		BR_PicCnt <= BR_PicCnt;
+								 		BR_Sync <= '1';
+								 	else
+								 		BR_PicCnt <= BR_PicCnt + 1 ;
+								 		BR_Sync <= '0';
+								 	end if;
+								else
+								 	BR_Address_in <= BR_Address_in + '1';
+								end if;						
+				when "10" => 	buf_vga_state 	<= "11";
+								BR_WriteHigh(0 downto 0) <= "0";
+								BR_Enable_in 	<= '0';
+				when "11" => 	buf_vga_state 	<= "00";
+								BR_Enable_in 	<= '1';
+								BR_WriteHigh(0 downto 0) <= "1";
+								if BR_Address_in = "1001010111111111111" then -- address = 640 x 480 = 307200
+								 	BR_Address_in <= "0000000000000000000";
+								 	if BR_PicCnt = 1 then
+								 		BR_PicCnt <= BR_PicCnt;
+								 		BR_Sync <= '1';
+								 	else
+								 		BR_PicCnt <= BR_PicCnt + 1 ;
+								 		BR_Sync <= '0';
+								 	end if;
+								else
+								 	BR_Address_in <= BR_Address_in + '1';
+								end if;
 				when others => null;
 			end case;					
 		else			
 			buf_vga_state <= "00";
 			buf_vga_Y_in_cnt <= 0;
-			BR_WriteHigh_in(0 downto 0) <= "0";
-			if BR_Address_in 	= "1001011000000000000" then -- address = 640 x 480 = 307200
+			BR_Enable_in 	<= '0';
+			if BR_Address_in 	= "1001010111111111111" then -- address = 640 x 480 = 307200
 			 	BR_Address_in <= "0000000000000000000";
-			 	--BR_Sync <= '1';
+			 	if BR_PicCnt = 1 then
+			 		BR_PicCnt <= BR_PicCnt;
+			 		BR_Sync <= '1';
+			 	else
+			 		BR_PicCnt <= BR_PicCnt + 1 ;
+			 		BR_Sync <= '0';
+			 	end if;
 			else
 			 	BR_Address_in <= BR_Address_in;
 			end if;
@@ -676,7 +696,7 @@ elsif rising_edge(clk_video) then
 			if ( cnt_h_sync_vga > 1 and cnt_h_sync_vga < 641 )   then		
 				if ( cnt_h_sync_vga > 1 and cnt_h_sync_vga < 640 )   then	
 					BR_Address_VGA <= BR_Address_VGA + 1;					
-					BR_WriteHigh_VGA(0 downto 0) <= "0";
+					BR_Enable_VGA <= '1';					
 					buf_vga_Y_out_cnt <= buf_vga_Y_out_cnt + 1;		
 					--if( (cnt_h_sync_vga > Draw_Cnt and cnt_h_sync_vga < (Draw_Cnt+10)) ) then -- draw m Line
 					if( cnt_h_sync_vga = Draw_Cnt ) then -- draw m Line
@@ -749,7 +769,8 @@ elsif rising_edge(clk_video) then
 					g_vga <= "000";
 					b_vga <= "000";
 					buf_vga_Y_out_cnt <= 0;
-					BR_Address_VGA <= BR_Address_VGA;									
+					BR_Address_VGA <= BR_Address_VGA;	
+					BR_Enable_VGA <= '0';												
 					if(Draw_Cnt = 255)then
 						Draw_Cnt <= CONV_INTEGER(RxD_Buffer(7 downto 0));
 					else
@@ -762,12 +783,14 @@ elsif rising_edge(clk_video) then
 				b_vga <= "000";
 				buf_vga_Y_out_cnt <= 0;
 				BR_Address_VGA <= BR_Address_VGA;
+				BR_Enable_VGA <= '0';
 			end if;				
 		else
 			r_vga <= "000";
 			g_vga <= "000";
 			b_vga <= "000";
-			BR_Address_VGA <= BR_Address_VGA;			
+			BR_Address_VGA <= BR_Address_VGA;
+			BR_Enable_VGA <= '0';			
 			Draw_Cnt <= CONV_INTEGER(RxD_Buffer(7 downto 0));
 		end if;
 --	

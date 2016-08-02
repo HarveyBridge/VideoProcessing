@@ -90,6 +90,7 @@ ENTITY Block_RAM_640x480_exdes IS
   PORT (
       --Inputs - Port A
     RSTA           : IN STD_LOGIC;  --opt port
+    ENA            : IN STD_LOGIC;  --opt port
   
     WEA            : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
     ADDRA          : IN STD_LOGIC_VECTOR(18 DOWNTO 0);
@@ -118,6 +119,7 @@ ARCHITECTURE xilinx OF Block_RAM_640x480_exdes IS
   PORT (
       --Port A
     RSTA       : IN STD_LOGIC;  --opt port
+    ENA        : IN STD_LOGIC;  --opt port
   
     WEA        : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
     ADDRA      : IN STD_LOGIC_VECTOR(18 DOWNTO 0);
@@ -151,6 +153,7 @@ BEGIN
     PORT MAP (
       --Port A
       RSTA       => RSTA,
+      ENA        => ENA,
   
       WEA        => WEA,
       ADDRA      => ADDRA,

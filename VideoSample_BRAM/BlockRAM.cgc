@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spirit:design xmlns:spirit="http://www.spiritconsortium.org/XMLSchema/SPIRIT/1685-2009" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xilinx="http://www.xilinx.com" >
    <spirit:vendor>xilinx.com</spirit:vendor>
-   <spirit:library>CoreGen</spirit:library>
+   <spirit:library>project</spirit:library>
    <spirit:name>BlockRAM</spirit:name>
    <spirit:version>1.0</spirit:version>
    <spirit:componentInstances>
@@ -31,7 +31,7 @@
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.WRITE_DEPTH_A">307200</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.READ_WIDTH_A">8</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.OPERATING_MODE_A">WRITE_FIRST</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.ENABLE_A">Always_Enabled</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.ENABLE_A">Use_ENA_Pin</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.WRITE_WIDTH_B">8</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.READ_WIDTH_B">8</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.OPERATING_MODE_B">WRITE_FIRST</spirit:configurableElementValue>
@@ -72,7 +72,7 @@
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.MEM_FILE">no_Mem_file_loaded</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_FAMILY">zynq</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_XDEVICEFAMILY">zynq</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_ELABORATION_DIR">C:/Users/BowenHsu/Documents/VideoProcessing/VideoSample/tmp/_cg/</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_ELABORATION_DIR">C:/Users/BowenHsu/Documents/VideoProcessing/VideoSample_BRAM/tmp/_cg/</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_INTERFACE_TYPE">0</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_AXI_TYPE">1</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_AXI_SLAVE_TYPE">0</spirit:configurableElementValue>
@@ -91,7 +91,7 @@
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_RST_PRIORITY_A">CE</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_RSTRAM_A">0</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_INITA_VAL">0</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_HAS_ENA">0</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_HAS_ENA">1</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_HAS_REGCEA">0</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_USE_BYTE_WEA">0</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_WEA_WIDTH">1</spirit:configurableElementValue>
@@ -132,7 +132,7 @@
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_DISABLE_WARN_BHV_RANGE">0</spirit:configurableElementValue>
          </spirit:configurableElementValues>
          <spirit:vendorExtensions>
-            <xilinx:instanceProperties>
+            <xilinx:instanceProperties xmlns:xilinx="http://www.xilinx.com">
                <xilinx:projectOptions>
                   <xilinx:projectName>BlockRAM</xilinx:projectName>
                   <xilinx:outputDirectory>./</xilinx:outputDirectory>
@@ -167,14 +167,11 @@
             </xilinx:instanceProperties>
             <xilinx:generationHistory>
                <xilinx:fileSet>
-                  <xilinx:name>apply_current_project_options_generator</xilinx:name>
-               </xilinx:fileSet>
-               <xilinx:fileSet>
                   <xilinx:name>customization_generator</xilinx:name>
                   <xilinx:file>
                      <xilinx:name>./summary.log</xilinx:name>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:16 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:00 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0xB779191A</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -184,7 +181,7 @@
                   <xilinx:file>
                      <xilinx:name>./summary.log</xilinx:name>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:20 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:04 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0xB779191A</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -194,8 +191,8 @@
                   <xilinx:file>
                      <xilinx:name>./Block_RAM_640x480.xco</xilinx:name>
                      <xilinx:userFileType>xco</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
-                     <xilinx:checkSum>0x62F6F4C1</xilinx:checkSum>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
+                     <xilinx:checkSum>0x1D2B1331</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
                </xilinx:fileSet>
@@ -232,7 +229,7 @@
                      <xilinx:name>./Block_RAM_640x480/example_design/Block_RAM_640x480_exdes.ucf</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>ucf</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0xC44C6B6D</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -240,15 +237,15 @@
                      <xilinx:name>./Block_RAM_640x480/example_design/Block_RAM_640x480_exdes.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdl</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
-                     <xilinx:checkSum>0x0409E9A8</xilinx:checkSum>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
+                     <xilinx:checkSum>0x3CD3321E</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./Block_RAM_640x480/example_design/Block_RAM_640x480_exdes.xdc</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>xdc</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0x7684D6D4</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -256,15 +253,15 @@
                      <xilinx:name>./Block_RAM_640x480/example_design/Block_RAM_640x480_prod.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdl</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
-                     <xilinx:checkSum>0x8A6E7D6D</xilinx:checkSum>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
+                     <xilinx:checkSum>0xDCD05199</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./Block_RAM_640x480/implement/implement.bat</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0xDF1110A4</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -272,7 +269,7 @@
                      <xilinx:name>./Block_RAM_640x480/implement/implement.sh</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0xDC69A577</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -280,7 +277,7 @@
                      <xilinx:name>./Block_RAM_640x480/implement/planAhead_ise.bat</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0xAE2AD35E</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -288,7 +285,7 @@
                      <xilinx:name>./Block_RAM_640x480/implement/planAhead_ise.sh</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0x8996F104</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -296,7 +293,7 @@
                      <xilinx:name>./Block_RAM_640x480/implement/planAhead_ise.tcl</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>tcl</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0x62359406</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -304,7 +301,7 @@
                      <xilinx:name>./Block_RAM_640x480/implement/xst.prj</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0x93924742</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -312,7 +309,7 @@
                      <xilinx:name>./Block_RAM_640x480/implement/xst.scr</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0x5E660E0D</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -320,15 +317,15 @@
                      <xilinx:name>./Block_RAM_640x480/simulation/Block_RAM_640x480_synth.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdl</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
-                     <xilinx:checkSum>0x20B40834</xilinx:checkSum>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
+                     <xilinx:checkSum>0x829534B0</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./Block_RAM_640x480/simulation/Block_RAM_640x480_tb.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdl</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0xCC19DC2F</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -336,7 +333,7 @@
                      <xilinx:name>./Block_RAM_640x480/simulation/addr_gen.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdl</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0x0500E48D</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -344,15 +341,15 @@
                      <xilinx:name>./Block_RAM_640x480/simulation/bmg_stim_gen.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdl</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
-                     <xilinx:checkSum>0x482834F3</xilinx:checkSum>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
+                     <xilinx:checkSum>0x0D82D515</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./Block_RAM_640x480/simulation/bmg_tb_pkg.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdl</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0xE0D93E5B</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -360,7 +357,7 @@
                      <xilinx:name>./Block_RAM_640x480/simulation/checker.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdl</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0x3EC35020</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -368,7 +365,7 @@
                      <xilinx:name>./Block_RAM_640x480/simulation/data_gen.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdl</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0xD9F7C4A0</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -376,15 +373,15 @@
                      <xilinx:name>./Block_RAM_640x480/simulation/functional/simcmds.tcl</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>tcl</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
-                     <xilinx:checkSum>0xAFE82FC6</xilinx:checkSum>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
+                     <xilinx:checkSum>0x6D411331</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./Block_RAM_640x480/simulation/functional/simulate_isim.bat</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0xF044F979</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -392,7 +389,7 @@
                      <xilinx:name>./Block_RAM_640x480/simulation/functional/simulate_mti.bat</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0x86EA5D67</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -400,7 +397,7 @@
                      <xilinx:name>./Block_RAM_640x480/simulation/functional/simulate_mti.do</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0xB3C61BC5</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -408,7 +405,7 @@
                      <xilinx:name>./Block_RAM_640x480/simulation/functional/simulate_mti.sh</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0x86EA5D67</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -416,7 +413,7 @@
                      <xilinx:name>./Block_RAM_640x480/simulation/functional/simulate_ncsim.sh</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0xC6B8708B</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -424,7 +421,7 @@
                      <xilinx:name>./Block_RAM_640x480/simulation/functional/simulate_vcs.sh</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0x87A3F01A</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -432,7 +429,7 @@
                      <xilinx:name>./Block_RAM_640x480/simulation/functional/ucli_commands.key</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0x8A4CC46B</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -440,31 +437,31 @@
                      <xilinx:name>./Block_RAM_640x480/simulation/functional/vcs_session.tcl</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>tcl</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
-                     <xilinx:checkSum>0xA6690619</xilinx:checkSum>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
+                     <xilinx:checkSum>0x10DCDA5F</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./Block_RAM_640x480/simulation/functional/wave_mti.do</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
-                     <xilinx:checkSum>0x9D756FEF</xilinx:checkSum>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
+                     <xilinx:checkSum>0x136616E2</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./Block_RAM_640x480/simulation/functional/wave_ncsim.sv</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
-                     <xilinx:checkSum>0x78CD9B6F</xilinx:checkSum>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
+                     <xilinx:checkSum>0x9C317C8B</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./Block_RAM_640x480/simulation/random.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdl</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0x2939160A</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -472,15 +469,15 @@
                      <xilinx:name>./Block_RAM_640x480/simulation/timing/simcmds.tcl</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>tcl</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
-                     <xilinx:checkSum>0xAFE82FC6</xilinx:checkSum>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
+                     <xilinx:checkSum>0x6D411331</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./Block_RAM_640x480/simulation/timing/simulate_isim.bat</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0x6A8D977A</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -488,7 +485,7 @@
                      <xilinx:name>./Block_RAM_640x480/simulation/timing/simulate_mti.bat</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0x86EA5D67</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -496,7 +493,7 @@
                      <xilinx:name>./Block_RAM_640x480/simulation/timing/simulate_mti.do</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0x6AC4614A</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -504,7 +501,7 @@
                      <xilinx:name>./Block_RAM_640x480/simulation/timing/simulate_mti.sh</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0x86EA5D67</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -512,7 +509,7 @@
                      <xilinx:name>./Block_RAM_640x480/simulation/timing/simulate_ncsim.sh</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0x5A0A1C4A</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -520,7 +517,7 @@
                      <xilinx:name>./Block_RAM_640x480/simulation/timing/simulate_vcs.sh</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0x01678217</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -528,7 +525,7 @@
                      <xilinx:name>./Block_RAM_640x480/simulation/timing/ucli_commands.key</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0x8A4CC46B</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -536,24 +533,24 @@
                      <xilinx:name>./Block_RAM_640x480/simulation/timing/vcs_session.tcl</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>tcl</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
-                     <xilinx:checkSum>0xA224A996</xilinx:checkSum>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
+                     <xilinx:checkSum>0xB8091A01</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./Block_RAM_640x480/simulation/timing/wave_mti.do</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
-                     <xilinx:checkSum>0xD45E5C37</xilinx:checkSum>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
+                     <xilinx:checkSum>0x52CE2C12</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./Block_RAM_640x480/simulation/timing/wave_ncsim.sv</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:15:21 GMT 2016</xilinx:timeStamp>
-                     <xilinx:checkSum>0xCBBE6D74</xilinx:checkSum>
+                     <xilinx:timeStamp>Tue Aug 02 13:49:05 GMT 2016</xilinx:timeStamp>
+                     <xilinx:checkSum>0x12CEF8D4</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
                </xilinx:fileSet>
@@ -562,8 +559,8 @@
                   <xilinx:file>
                      <xilinx:name>./Block_RAM_640x480.ngc</xilinx:name>
                      <xilinx:userFileType>ngc</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:17:26 GMT 2016</xilinx:timeStamp>
-                     <xilinx:checkSum>0xDF071A48</xilinx:checkSum>
+                     <xilinx:timeStamp>Tue Aug 02 13:51:14 GMT 2016</xilinx:timeStamp>
+                     <xilinx:checkSum>0x2A9F3295</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
                </xilinx:fileSet>
@@ -578,8 +575,8 @@
                   <xilinx:file>
                      <xilinx:name>./Block_RAM_640x480.vho</xilinx:name>
                      <xilinx:userFileType>vho</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:17:27 GMT 2016</xilinx:timeStamp>
-                     <xilinx:checkSum>0xAB1BCAB5</xilinx:checkSum>
+                     <xilinx:timeStamp>Tue Aug 02 13:51:15 GMT 2016</xilinx:timeStamp>
+                     <xilinx:checkSum>0xF8ED9512</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
                </xilinx:fileSet>
@@ -588,8 +585,8 @@
                   <xilinx:file>
                      <xilinx:name>./Block_RAM_640x480.vhd</xilinx:name>
                      <xilinx:userFileType>vhdl</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:17:27 GMT 2016</xilinx:timeStamp>
-                     <xilinx:checkSum>0xAC4CC510</xilinx:checkSum>
+                     <xilinx:timeStamp>Tue Aug 02 13:51:15 GMT 2016</xilinx:timeStamp>
+                     <xilinx:checkSum>0x871BABBF</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
                </xilinx:fileSet>
@@ -599,7 +596,7 @@
                      <xilinx:name>./Block_RAM_640x480/doc/blk_mem_gen_v7_3_vinfo.html</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:17:27 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:51:15 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0x702C7FA8</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -609,14 +606,14 @@
                   <xilinx:file>
                      <xilinx:name>./Block_RAM_640x480.asy</xilinx:name>
                      <xilinx:userFileType>asy</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:17:31 GMT 2016</xilinx:timeStamp>
-                     <xilinx:checkSum>0x7485BA1F</xilinx:checkSum>
+                     <xilinx:timeStamp>Tue Aug 02 13:51:19 GMT 2016</xilinx:timeStamp>
+                     <xilinx:checkSum>0x609F1A69</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./summary.log</xilinx:name>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:17:31 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:51:19 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0xB779191A</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -627,7 +624,7 @@
                      <xilinx:name>./Block_RAM_640x480_xmdf.tcl</xilinx:name>
                      <xilinx:userFileType>tclXmdf</xilinx:userFileType>
                      <xilinx:userFileType>tcl</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:17:31 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:51:19 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0xD14C5280</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -638,7 +635,7 @@
                      <xilinx:name>./Block_RAM_640x480.gise</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>gise</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:17:33 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:51:21 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0x5FD64F65</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -646,8 +643,8 @@
                      <xilinx:name>./Block_RAM_640x480.xise</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>xise</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:17:33 GMT 2016</xilinx:timeStamp>
-                     <xilinx:checkSum>0xB93877F9</xilinx:checkSum>
+                     <xilinx:timeStamp>Tue Aug 02 13:51:21 GMT 2016</xilinx:timeStamp>
+                     <xilinx:checkSum>0x33B4EE7F</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
                </xilinx:fileSet>
@@ -657,7 +654,7 @@
                      <xilinx:name>./Block_RAM_640x480.gise</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>gise</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:17:35 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:51:24 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0x756CBDA5</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
@@ -665,16 +662,16 @@
                      <xilinx:name>./Block_RAM_640x480.xise</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>xise</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:17:35 GMT 2016</xilinx:timeStamp>
-                     <xilinx:checkSum>0xA7BB5579</xilinx:checkSum>
+                     <xilinx:timeStamp>Tue Aug 02 13:51:24 GMT 2016</xilinx:timeStamp>
+                     <xilinx:checkSum>0xB5592BF5</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./_xmsgs/pn_parser.xmsgs</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:17:35 GMT 2016</xilinx:timeStamp>
-                     <xilinx:checkSum>0x4F030A30</xilinx:checkSum>
+                     <xilinx:timeStamp>Tue Aug 02 13:51:24 GMT 2016</xilinx:timeStamp>
+                     <xilinx:checkSum>0xF8475E34</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>
                </xilinx:fileSet>
@@ -688,7 +685,7 @@
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>txtFlist</xilinx:userFileType>
                      <xilinx:userFileType>txt</xilinx:userFileType>
-                     <xilinx:timeStamp>Fri Jul 29 17:17:36 GMT 2016</xilinx:timeStamp>
+                     <xilinx:timeStamp>Tue Aug 02 13:51:24 GMT 2016</xilinx:timeStamp>
                      <xilinx:checkSum>0xF78D28E3</xilinx:checkSum>
                      <xilinx:generationId>generationID_706127423</xilinx:generationId>
                   </xilinx:file>

@@ -48,10 +48,12 @@
 COMPONENT blk_mem_gen_v7_3
   PORT (
     clka : IN STD_LOGIC;
+    rsta : IN STD_LOGIC;
+    ena : IN STD_LOGIC;
     wea : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
     addra : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-    dina : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
-    douta : OUT STD_LOGIC_VECTOR(15 DOWNTO 0)
+    dina : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
+    douta : OUT STD_LOGIC_VECTOR(7 DOWNTO 0)
   );
 END COMPONENT;
 -- COMP_TAG_END ------ End COMPONENT Declaration ------------
@@ -63,6 +65,8 @@ END COMPONENT;
 your_instance_name : blk_mem_gen_v7_3
   PORT MAP (
     clka => clka,
+    rsta => rsta,
+    ena => ena,
     wea => wea,
     addra => addra,
     dina => dina,

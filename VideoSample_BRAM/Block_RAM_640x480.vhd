@@ -44,6 +44,7 @@ ENTITY Block_RAM_640x480 IS
   PORT (
     clka : IN STD_LOGIC;
     rsta : IN STD_LOGIC;
+    ena : IN STD_LOGIC;
     wea : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
     addra : IN STD_LOGIC_VECTOR(18 DOWNTO 0);
     dina : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
@@ -57,6 +58,7 @@ COMPONENT wrapped_Block_RAM_640x480
   PORT (
     clka : IN STD_LOGIC;
     rsta : IN STD_LOGIC;
+    ena : IN STD_LOGIC;
     wea : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
     addra : IN STD_LOGIC_VECTOR(18 DOWNTO 0);
     dina : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
@@ -81,7 +83,7 @@ END COMPONENT;
       c_enable_32bit_address => 0,
       c_family => "zynq",
       c_has_axi_id => 0,
-      c_has_ena => 0,
+      c_has_ena => 1,
       c_has_enb => 0,
       c_has_injecterr => 0,
       c_has_mem_output_regs_a => 0,
@@ -136,6 +138,7 @@ U0 : wrapped_Block_RAM_640x480
   PORT MAP (
     clka => clka,
     rsta => rsta,
+    ena => ena,
     wea => wea,
     addra => addra,
     dina => dina,
