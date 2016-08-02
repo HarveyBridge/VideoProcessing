@@ -316,6 +316,68 @@ component LTP_Calculate is
 		);
 end component;
 
+------------------------------|
+--New Matrix = Matrix Buffer--|
+------------------------------|
+signal Sobel_Column_1 : Matrix_Buf;
+signal Sobel_R1C1 : std_logic_vector((8-1) downto 0):="00000000";
+signal Sobel_R2C1 : std_logic_vector((8-1) downto 0):="00000000";
+signal Sobel_R3C1 : std_logic_vector((8-1) downto 0):="00000000";
+
+signal Sobel_Column_2 : Matrix_Buf;
+signal Sobel_R1C2 : std_logic_vector((8-1) downto 0):="00000000";
+signal Sobel_R2C2 : std_logic_vector((8-1) downto 0):="00000000";
+signal Sobel_R3C2 : std_logic_vector((8-1) downto 0):="00000000";
+
+signal Sobel_Column_3 : Matrix_Buf;
+signal Sobel_R1C3 : std_logic_vector((8-1) downto 0):="00000000";
+signal Sobel_R2C3 : std_logic_vector((8-1) downto 0):="00000000";
+signal Sobel_R3C3 : std_logic_vector((8-1) downto 0):="00000000";
+
+signal Sobel_Buf_Cnt	 : integer range 0 to 639:=0;
+signal Sobel_Buf_Length_Max : integer range 0 to 639:=639;
+signal Matrix_Full : Matrix_Buf_Full;
+signal Matrix_X : integer range 0 to 639:= 0;
+signal Matrix_Y : integer range 0 to 479:= 0;
+component BufferToMatrix3x3_Pos is
+port(
+	clk_video	: in std_logic;
+	rst_system	: in std_logic;
+	data_video 	: in std_logic_vector(7 downto 0);
+	cnt_h_sync_vga :in integer range 0 to 857;
+	cnt_v_sync_vga :in integer range 0 to 524;
+	Matrix_Full : inout Matrix_Buf_Full
+	);
+end component;
+
+signal DataOutSequence :Matrix_Buf;
+component Normal_Mask is
+	Port(
+			rst_system	: in std_logic;
+			clk_video 	: in std_logic;
+			buf_sobel_cc_en : in std_logic;
+			buf_vga_en		: in std_logic;	
+			cnt_video_hsync	: in  integer range 0 to 1715;	
+			buf_data_state  : in std_logic_vector(1 downto 0);
+			Matrix_R1C1  : in std_logic_vector((8-1) downto 0);
+			Matrix_R2C1  : in std_logic_vector((8-1) downto 0);		
+			Matrix_R3C1  : in std_logic_vector((8-1) downto 0);
+			Matrix_R1C2  : in std_logic_vector((8-1) downto 0);
+			Matrix_R2C2  : in std_logic_vector((8-1) downto 0);		
+			Matrix_R3C2  : in std_logic_vector((8-1) downto 0);
+			Matrix_R1C3  : in std_logic_vector((8-1) downto 0);
+			Matrix_R2C3  : in std_logic_vector((8-1) downto 0);		
+			Matrix_R3C3  : in std_logic_vector((8-1) downto 0);
+			DataOutSequence : inout Matrix_Buf;	
+			SB_XSCR : buffer std_logic_vector((10-1) downto 0);
+			SB_YSCR : buffer std_logic_vector((10-1) downto 0);
+			SB_SUM : buffer std_logic_vector((11-1) downto 0);
+			SB_buf_redata : inout Sobel_buf;			
+			redata_cnt : buffer integer range 0 to 650			
+			--SB_CRB_data : in std_logic:='0';
+		);
+end component;
+
 ---------------------|@@@@ | ----------->  H
 --Display Parameter--|@@@@ |
 ---------------------|@@@@ |
@@ -386,29 +448,18 @@ i2c_1 :i2c
                 sda => sda           
 			);
 
---Sobel_Cal_BTM3x3 : BufferToMatrix3x3
---	port map (
---		clk_video 		=> clk_video,
---		rst_system 		=> rst_system,		
---		buf_vga_en 		=> buf_vga_en,
---		buf_data_state 	=> buf_data_state,
---		cnt_video_hsync => cnt_video_hsync,
-
---		data_video 		=> data_video(7 downto 0),
---		Matrix_R1C1 	=> Sobel_Cal_R1C1,
---		Matrix_R2C1 	=> Sobel_Cal_R2C1,
---		Matrix_R3C1 	=> Sobel_Cal_R3C1,
---		Matrix_R1C2 	=> Sobel_Cal_R1C2,
---		Matrix_R2C2 	=> Sobel_Cal_R2C2,
---		Matrix_R3C2 	=> Sobel_Cal_R3C2,
---		Matrix_R1C3 	=> Sobel_Cal_R1C3,
---		Matrix_R2C3 	=> Sobel_Cal_R2C3,
---		Matrix_R3C3 	=> Sobel_Cal_R3C3,
---		Matrix_Buf_Cnt 	=> Sobel_Cal_Buf_Cnt
+--Sobel_BTM3x3 : BufferToMatrix3x3_Pos
+--	port map (		
+--		clk_video		=> clk_video,
+--		rst_system		=> rst_system,		
+--		cnt_h_sync_vga 	=> cnt_h_sync_vga,
+--		cnt_v_sync_vga 	=> cnt_v_sync_vga,
+--		data_video 		=> buf_vga_Y2(buf_vga_Y_out_cnt)(7 downto 0),
+--		Matrix_Full 	=> Matrix_Full
 --);
 
 
---Sobel_Cal_Functions: Sobel_Calculate
+--Sobel_Cal_Functions: Normal_Mask
 --	port map(
 --		clk_video 		=> clk_video,
 --		rst_system 		=> rst_system,		
@@ -417,21 +468,20 @@ i2c_1 :i2c
 --		buf_data_state 	=> buf_data_state,
 --		buf_sobel_cc_en => buf_sobel_cc_en,
 		
---		Sobel_Cal_R1C1  => Sobel_Cal_R1C1,
---		Sobel_Cal_R2C1  => Sobel_Cal_R2C1,
---		Sobel_Cal_R3C1  => Sobel_Cal_R3C1,
---		Sobel_Cal_R1C2  => Sobel_Cal_R1C2,
---		Sobel_Cal_R2C2  => Sobel_Cal_R2C2,
---		Sobel_Cal_R3C2  => Sobel_Cal_R3C2,		
---		Sobel_Cal_R1C3  => Sobel_Cal_R1C3,
---		Sobel_Cal_R2C3  => Sobel_Cal_R2C3,
---		Sobel_Cal_R3C3  => Sobel_Cal_R3C3,
---		Sobel_Cal_en	=> Sobel_Cal_en,
+--		Matrix_R1C1 	=> Sobel_R1C1,
+--		Matrix_R2C1 	=> Sobel_R2C1,
+--		Matrix_R3C1 	=> Sobel_R3C1,
+--		Matrix_R1C2 	=> Sobel_R1C2,
+--		Matrix_R2C2 	=> Sobel_R2C2,
+--		Matrix_R3C2 	=> Sobel_R3C2,
+--		Matrix_R1C3 	=> Sobel_R1C3,
+--		Matrix_R2C3 	=> Sobel_R2C3,
+--		Matrix_R3C3 	=> Sobel_R3C3,
+--		DataOutSequence => DataOutSequence,
 --		SB_XSCR 		=> SB_XSCR,
 --		SB_YSCR 		=> SB_YSCR,
 --		SB_SUM 			=> SB_SUM,
 --		SB_buf_redata 	=> SB_buf_redata,
---		Encode_Threshold=> SB_Encode_Threshold,
 --		redata_cnt 		=> redata_cnt
 --		);
 
@@ -545,6 +595,8 @@ if rst_system = '0' then
 	-- show_frame_en <= '0';
 	-- available_frame_value <= 0;
 	Draw_Cnt <= CONV_INTEGER(RxD_Buffer(7 downto 0));
+	Matrix_X <= 0;
+	Matrix_Y <= 0;
 elsif rising_edge(clk_video) then
 			-- even  odd
 		-- if (((f_video_en = '0' and black_vga_en = '0') or (f_video_en = '1' and black_vga_en = '1')) and cnt_h_sync_vga > 1 and cnt_h_sync_vga < 640 and cnt_v_sync_vga > 1 and cnt_v_sync_vga < 480)   then			
@@ -580,6 +632,8 @@ elsif rising_edge(clk_video) then
 			if ( cnt_h_sync_vga > 1 and cnt_h_sync_vga < 641 )   then			
 				if ( cnt_h_sync_vga > 1 and cnt_h_sync_vga < 640 )   then			
 					buf_vga_Y_out_cnt <= buf_vga_Y_out_cnt + 1;		
+					Matrix_X <= Matrix_X + 1;
+					Matrix_Full(Matrix_Y)(Matrix_X)(7 downto 0) <= buf_vga_Y2(buf_vga_Y_out_cnt)(7 downto 0);
 					--if( (cnt_h_sync_vga > Draw_Cnt and cnt_h_sync_vga < (Draw_Cnt+10)) ) then -- draw m Line
 					if( cnt_h_sync_vga = Draw_Cnt ) then -- draw m Line
 						r_vga <= "111";
@@ -624,24 +678,24 @@ elsif rising_edge(clk_video) then
 												--r_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
 												--g_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
 												--b_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
-												TxD_Buffer <= buf_vga_Y2(buf_vga_Y_out_cnt)(7 downto 0);
-												r_vga <= buf_vga_Y2(buf_vga_Y_out_cnt)(7 downto 5);
+												--TxD_Buffer <= buf_vga_Y2(buf_vga_Y_out_cnt)(7 downto 0);
+												r_vga <= Matrix_Full(Matrix_Y)(Matrix_X)(7 downto 5);
 												g_vga <= "111";
 												b_vga <= "111";
 												-- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ Inner Special Range 150x200 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ --		
 											end if;											
 										end if;
 									else
-										r_vga <= buf_vga_Y2(buf_vga_Y_out_cnt)(7 downto 5);
-										g_vga <= buf_vga_Y2(buf_vga_Y_out_cnt)(7 downto 5);
-										b_vga <= buf_vga_Y2(buf_vga_Y_out_cnt)(7 downto 5);	
+										r_vga <= Matrix_Full(Matrix_Y)(Matrix_X)(7 downto 5);
+										g_vga <= Matrix_Full(Matrix_Y)(Matrix_X)(7 downto 5);
+										b_vga <= Matrix_Full(Matrix_Y)(Matrix_X)(7 downto 5);
 									end if;																	
 								end if;
 							end if;
 						else
-							r_vga <= buf_vga_Y2(buf_vga_Y_out_cnt)(7 downto 5);
-							g_vga <= buf_vga_Y2(buf_vga_Y_out_cnt)(7 downto 5);
-							b_vga <= buf_vga_Y2(buf_vga_Y_out_cnt)(7 downto 5);
+							r_vga <= Matrix_Full(Matrix_Y)(Matrix_X)(7 downto 5);
+							g_vga <= Matrix_Full(Matrix_Y)(Matrix_X)(7 downto 5);
+							b_vga <= Matrix_Full(Matrix_Y)(Matrix_X)(7 downto 5);
 						end if;
 					end if;								
 				else			
@@ -649,6 +703,9 @@ elsif rising_edge(clk_video) then
 					g_vga <= "000";
 					b_vga <= "000";
 					buf_vga_Y_out_cnt <= 0;
+					Matrix_X <= 0;
+					Matrix_Y <= Matrix_Y + 1;
+
 					if(Draw_Cnt = 255)then
 						Draw_Cnt <= CONV_INTEGER(RxD_Buffer(7 downto 0));
 					else
@@ -660,12 +717,16 @@ elsif rising_edge(clk_video) then
 				g_vga <= "000";
 				b_vga <= "000";
 				buf_vga_Y_out_cnt <= 0;
+				Matrix_X <= 0;
+				Matrix_Y <= Matrix_Y;
 			end if;				
 		else
 			r_vga <= "000";
 			g_vga <= "000";
 			b_vga <= "000";
 			buf_vga_Y_out_cnt <= 0;
+			Matrix_X <= 0;
+			Matrix_Y <= 0;
 			Draw_Cnt <= CONV_INTEGER(RxD_Buffer(7 downto 0));
 		end if;
 --	

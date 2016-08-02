@@ -121,7 +121,7 @@ begin
 
   -- UART register 0 is used to get data in and out of the UART module, so set the
   -- register address to 0 whenever the receiver has received a character or the
-  -- transmitter is ready to send a character.ก@
+  -- transmitter is ready to send a character.ยก@
   reg0 <= "0" & not(rd_rdy or td_rdy);
 
   -- Instantiation of the UART module.

@@ -163,11 +163,10 @@ signal buf_data_state : std_logic_vector(1 downto 0):="00";
 --SB = Sobel Buffer--|
 ---------------------|
 
-
-
 signal SB_CRB_data : std_logic:='0';
-
 signal redata_en : std_logic:='0';
+
+
 
 
 
@@ -352,10 +351,11 @@ component BufferToMatrix3x3_1Bit is
 	);
 end component;
 
-signal Sobel_TwoValue : std_logic:='0';
-signal Erosion_Cnt  : integer range 0 to 639:=0;
-signal Erosion_Bit  : std_logic;
-signal Erosion_Value: Matrix_Buf_1Bit;
+signal Sobel_TwoValue 		: Matrix_Buf_1Bit;
+signal Sobel_TwoValue_Cnt	: integer range 0 to 639:=0;
+signal Erosion_Cnt  		: integer range 0 to 639:=0;
+signal Erosion_Bit  		: std_logic;
+signal Erosion_Value 		: Matrix_Buf_1Bit;
 
 component Erosion_Calculate is
 	Port(
@@ -374,11 +374,68 @@ component Erosion_Calculate is
 			Erosion_R3C3  			: in std_logic;
 			Erosion_Cnt				: buffer integer range 0 to 639:=0;
 			Erosion_Bit 			: buffer std_logic;
-			Erosion_Value			: inout Matrix_Buf_1Bit
+			Erosion_Value			: inout Matrix_Buf_1Bit			
 		);
 end component;
 
+--------------------------------------------|
+--LineDetectionMask Matrix = Matrix Buffer--|
+--------------------------------------------|
+signal LDM_Cal_Column_1 : Matrix_Buf;
+signal LDM_Cal_R1C1 : std_logic_vector((10-1) downto 0):="0000000000";
+signal LDM_Cal_R2C1 : std_logic_vector((10-1) downto 0):="0000000000";
+signal LDM_Cal_R3C1 : std_logic_vector((10-1) downto 0):="0000000000";
 
+signal LDM_Cal_Column_2 : Matrix_Buf;
+signal LDM_Cal_R1C2 : std_logic_vector((10-1) downto 0):="0000000000";
+signal LDM_Cal_R2C2 : std_logic_vector((10-1) downto 0):="0000000000";
+signal LDM_Cal_R3C2 : std_logic_vector((10-1) downto 0):="0000000000";
+
+signal LDM_Cal_Column_3 : Matrix_Buf;
+signal LDM_Cal_R1C3 : std_logic_vector((10-1) downto 0):="0000000000";
+signal LDM_Cal_R2C3 : std_logic_vector((10-1) downto 0):="0000000000";
+signal LDM_Cal_R3C3 : std_logic_vector((10-1) downto 0):="0000000000";
+
+signal LDM_Cal_Buf_Cnt	 		: integer range 0 to 639:=0;
+signal LDM_Cal_Buf_Length_Max 	: integer range 0 to 639:=639;
+
+signal LDM_Cal_en 			: std_logic:='0';
+signal LDM_Cal_record 		: std_logic_vector((4-1) downto 0):="0000";
+signal LDM_Cal_Buf_Src_X 	: integer range 0 to 639:=0;
+signal LDM_Cal_Buf_Src_Y 	: integer range 0 to 479:=0;
+signal LDM_Cal_Buf_X1		: integer range 0 to 639:=0;
+signal LDM_Cal_Buf_Y1		: integer range 0 to 479:=0;
+signal LDM_Cal_Buf_X2		: integer range 0 to 639:=0;
+signal LDM_Cal_Buf_Y2		: integer range 0 to 479:=0;
+
+component LineDetectionMask is
+	Port(
+			rst_system		: in std_logic;
+			clk_video 		: in std_logic;
+			buf_sobel_cc_en : in std_logic;
+			buf_vga_en		: in std_logic;	
+			cnt_video_hsync	: in  integer range 0 to 1715;	
+			buf_data_state  : in std_logic_vector(1 downto 0);
+			LDM_Cal_R1C1  	: in std_logic_vector(10-1 downto 0);
+			LDM_Cal_R2C1  	: in std_logic_vector(10-1 downto 0);		
+			LDM_Cal_R3C1  	: in std_logic_vector(10-1 downto 0);
+			LDM_Cal_R1C2  	: in std_logic_vector(10-1 downto 0);
+			LDM_Cal_R2C2  	: in std_logic_vector(10-1 downto 0);		
+			LDM_Cal_R3C2  	: in std_logic_vector(10-1 downto 0);
+			LDM_Cal_R1C3  	: in std_logic_vector(10-1 downto 0);
+			LDM_Cal_R2C3  	: in std_logic_vector(10-1 downto 0);		
+			LDM_Cal_R3C3  	: in std_logic_vector(10-1 downto 0);
+			LDM_Cal_en		: inout std_logic;
+			LDM_Cal_record	: inout std_logic_vector((4-1) downto 0);
+			LDM_Cal_Buf_Src_X: in integer range 0 to 639;
+			LDM_Cal_Buf_Src_Y: in integer range 0 to 479;
+			LDM_Cal_Buf_X1	: inout integer range 0 to 639;
+			LDM_Cal_Buf_Y1	: inout integer range 0 to 479;
+			LDM_Cal_Buf_X2	: inout integer range 0 to 639;
+			LDM_Cal_Buf_Y2	: inout integer range 0 to 479
+		);
+end component;
+-------
 --type Histogram is array (integer range 0 to 639) of std_logic_vector ((8-1) downto 0);
 signal His_Sobel: Histogram;
 signal His_Cnt	: integer range 0 to 639;	
@@ -503,6 +560,55 @@ Sobel_Cal_Functions: Sobel_Calculate
 		redata_cnt 		=> redata_cnt
 		);
 
+LineDetectionMask_BTM3x3 : BufferToMatrix3x3
+	port map (
+		clk_video 		=> clk_video,
+		rst_system 		=> rst_system,		
+		buf_vga_en 		=> buf_vga_en,
+		buf_data_state 	=> buf_data_state,
+		cnt_video_hsync => cnt_video_hsync,
+
+		data_video 		=> SB_buf_redata(redata_cnt)(7 downto 0),
+		Matrix_R1C1 	=> LDM_Cal_R1C1,
+		Matrix_R2C1 	=> LDM_Cal_R2C1,
+		Matrix_R3C1 	=> LDM_Cal_R3C1,
+		Matrix_R1C2 	=> LDM_Cal_R1C2,
+		Matrix_R2C2 	=> LDM_Cal_R2C2,
+		Matrix_R3C2 	=> LDM_Cal_R3C2,
+		Matrix_R1C3 	=> LDM_Cal_R1C3,
+		Matrix_R2C3 	=> LDM_Cal_R2C3,
+		Matrix_R3C3 	=> LDM_Cal_R3C3,
+		Matrix_Buf_Cnt 	=> LDM_Cal_Buf_Cnt
+);
+
+LineDetectionMask_Cal_Functions: LineDetectionMask
+	port map(
+		clk_video 		=> clk_video,
+		rst_system 		=> rst_system,		
+		buf_vga_en 		=> buf_vga_en,
+		cnt_video_hsync => cnt_video_hsync,
+		buf_data_state 	=> buf_data_state,
+		buf_sobel_cc_en => buf_sobel_cc_en,
+		
+		LDM_Cal_R1C1  	=> LDM_Cal_R1C1,
+		LDM_Cal_R2C1  	=> LDM_Cal_R2C1,
+		LDM_Cal_R3C1  	=> LDM_Cal_R3C1,
+		LDM_Cal_R1C2  	=> LDM_Cal_R1C2,
+		LDM_Cal_R2C2  	=> LDM_Cal_R2C2,
+		LDM_Cal_R3C2  	=> LDM_Cal_R3C2,		
+		LDM_Cal_R1C3  	=> LDM_Cal_R1C3,
+		LDM_Cal_R2C3  	=> LDM_Cal_R2C3,
+		LDM_Cal_R3C3  	=> LDM_Cal_R3C3,
+		LDM_Cal_en		=> LDM_Cal_en,
+		LDM_Cal_record	=> LDM_Cal_record,
+		LDM_Cal_Buf_Src_X => LDM_Cal_Buf_Src_X,
+		LDM_Cal_Buf_Src_Y => LDM_Cal_Buf_Src_Y,
+		LDM_Cal_Buf_X1	=> LDM_Cal_Buf_X1,
+		LDM_Cal_Buf_Y1	=> LDM_Cal_Buf_Y1,
+		LDM_Cal_Buf_X2	=> LDM_Cal_Buf_X2,
+		LDM_Cal_Buf_Y2	=> LDM_Cal_Buf_Y2
+		);
+
 My_miniUART_F1:	My_miniUART_Zynq
 	port map (
 			clk_video  => clk_video,
@@ -513,62 +619,67 @@ My_miniUART_F1:	My_miniUART_Zynq
 			RxD_Buffer => RxD_Buffer
 			);
 
-Erosion_MatrixBuf: BufferToMatrix3x3_1Bit
-	port map (
-			clk_video		=> clk_video,
-			rst_system		=> rst_system,			
-			buf_vga_en		=> buf_vga_en,
-			buf_data_state	=> buf_data_state,			
-			cnt_video_hsync => cnt_video_hsync,
-			Sobel_Cal_en 	=> Sobel_Cal_en,
+--Erosion_MatrixBuf: BufferToMatrix3x3_1Bit
+--	port map (
+--			clk_video		=> clk_video,
+--			rst_system		=> rst_system,			
+--			buf_vga_en		=> buf_vga_en,
+--			buf_data_state	=> buf_data_state,			
+--			cnt_video_hsync => cnt_video_hsync,
+--			Sobel_Cal_en 	=> Sobel_Cal_en,
 			
-			data_video 		=> Sobel_TwoValue,
-			Matrix_R1C1 	=> Erosion_Cal_R1C1,
-			Matrix_R2C1 	=> Erosion_Cal_R2C1,
-			Matrix_R3C1 	=> Erosion_Cal_R3C1,
-			Matrix_R1C2 	=> Erosion_Cal_R1C2,
-			Matrix_R2C2 	=> Erosion_Cal_R2C2,
-			Matrix_R3C2 	=> Erosion_Cal_R3C2,
-			Matrix_R1C3 	=> Erosion_Cal_R1C3,
-			Matrix_R2C3 	=> Erosion_Cal_R2C3,
-			Matrix_R3C3 	=> Erosion_Cal_R3C3,
-			Matrix_Buf_Cnt 	=> Erosion_Cal_Buf_Cnt 
-			);
+--			data_video 		=> Sobel_TwoValue(Sobel_TwoValue_Cnt),
+--			Matrix_R1C1 	=> Erosion_Cal_R1C1,
+--			Matrix_R2C1 	=> Erosion_Cal_R2C1,
+--			Matrix_R3C1 	=> Erosion_Cal_R3C1,
+--			Matrix_R1C2 	=> Erosion_Cal_R1C2,
+--			Matrix_R2C2 	=> Erosion_Cal_R2C2,
+--			Matrix_R3C2 	=> Erosion_Cal_R3C2,
+--			Matrix_R1C3 	=> Erosion_Cal_R1C3,
+--			Matrix_R2C3 	=> Erosion_Cal_R2C3,
+--			Matrix_R3C3 	=> Erosion_Cal_R3C3,
+--			Matrix_Buf_Cnt 	=> Erosion_Cal_Buf_Cnt 
+--			);
 
-process(clk_video,rst_system)
-begin
-	if rst_system = '0' then
-		Sobel_TwoValue <= '0';
-	elsif rising_edge(clk_video) then
-		if((SB_buf_redata(redata_cnt) < x"FF") and (SB_buf_redata(redata_cnt) > x"3F"))then		
-			Sobel_TwoValue <= '1';
-		else
-			Sobel_TwoValue <= '0';
-		end if;
-	end if;
-end process;
+--process(clk_video,rst_system)
+--begin
+--	if rst_system = '0' then
+--		Sobel_TwoValue_Cnt <= 0;
+--	elsif rising_edge(clk_video) then
+--		if((SB_buf_redata(redata_cnt) < x"FF") and (SB_buf_redata(redata_cnt) > x"3F"))then		
+--			Sobel_TwoValue(Sobel_TwoValue_Cnt) <= '1';
+--		else
+--			Sobel_TwoValue(Sobel_TwoValue_Cnt) <= '0';
+--		end if;
+--		if Sobel_TwoValue_Cnt = 639 then
+--			Sobel_TwoValue_Cnt <= 0;
+--		else
+--			Sobel_TwoValue_Cnt <= Sobel_TwoValue_Cnt + 1;
+--		end if;
+--	end if;
+--end process;
 
 
-ErosionCalculate: Erosion_Calculate
-	port map(
-			clk_video		=> clk_video,
-			rst_system		=> rst_system,
-			buf_sobel_cc_en => buf_sobel_cc_en,
-			Sobel_Cal_en 	=> Sobel_Cal_en,
+--ErosionCalculate: Erosion_Calculate
+--	port map(
+--			clk_video		=> clk_video,
+--			rst_system		=> rst_system,
+--			buf_sobel_cc_en => buf_sobel_cc_en,
+--			Sobel_Cal_en 	=> Sobel_Cal_en,
 
-			Erosion_R1C1  	=> Erosion_Cal_R1C1,
-			Erosion_R2C1  	=> Erosion_Cal_R2C1,
-			Erosion_R3C1  	=> Erosion_Cal_R3C1,
-			Erosion_R1C2  	=> Erosion_Cal_R1C2,
-			Erosion_R2C2  	=> Erosion_Cal_R2C2,
-			Erosion_R3C2  	=> Erosion_Cal_R3C2,
-			Erosion_R1C3  	=> Erosion_Cal_R1C3,
-			Erosion_R2C3  	=> Erosion_Cal_R2C3,
-			Erosion_R3C3  	=> Erosion_Cal_R3C3,
-			Erosion_Cnt		=> Erosion_Cnt,
-			Erosion_Bit 	=> Erosion_Bit,
-			Erosion_Value	=> Erosion_Value
-		);
+--			Erosion_R1C1  	=> Erosion_Cal_R1C1,
+--			Erosion_R2C1  	=> Erosion_Cal_R2C1,
+--			Erosion_R3C1  	=> Erosion_Cal_R3C1,
+--			Erosion_R1C2  	=> Erosion_Cal_R1C2,
+--			Erosion_R2C2  	=> Erosion_Cal_R2C2,
+--			Erosion_R3C2  	=> Erosion_Cal_R3C2,
+--			Erosion_R1C3  	=> Erosion_Cal_R1C3,
+--			Erosion_R2C3  	=> Erosion_Cal_R2C3,
+--			Erosion_R3C3  	=> Erosion_Cal_R3C3,
+--			Erosion_Cnt		=> Erosion_Cnt,
+--			Erosion_Bit 	=> Erosion_Bit,
+--			Erosion_Value	=> Erosion_Value			
+--		);
 
 --LTP_Edge_BTM3x3 : BufferToMatrix3x3
 --	port map (
@@ -680,7 +791,6 @@ ErosionCalculate: Erosion_Calculate
 --end process Display_VGA;
 ----############################################### Display VGA ###############################################--
 
-
 --std_logic_vector 	<= CONV_STD_LOGIC_VECTOR(int, BIT(s));
 --int 				<= CONV_INTEGER(std_logic(MSB downto LSB));
 -- Ÿäè»Šç”¨
@@ -730,7 +840,9 @@ elsif rising_edge(clk_video) then
 			if ( cnt_h_sync_vga > 1 and cnt_h_sync_vga < 641 )   then			
 				if ( cnt_h_sync_vga > 1 and cnt_h_sync_vga < 640 )   then			
 					buf_vga_Y_out_cnt <= buf_vga_Y_out_cnt + 1;		
-					if( cnt_h_sync_vga = Draw_Cnt ) then -- draw m Line
+					LDM_Cal_Buf_Src_X <= cnt_h_sync_vga;
+					LDM_Cal_Buf_Src_Y <= cnt_v_sync_vga;
+					if((cnt_h_sync_vga = LDM_Cal_Buf_X1 )and(cnt_v_sync_vga = LDM_Cal_Buf_Y1)) then -- draw m Line
 						r_vga <= "111";
 						g_vga <= "111";
 						b_vga <= "000";
@@ -767,43 +879,124 @@ elsif rising_edge(clk_video) then
 												b_vga <= "111";
 											else -- else area ==> Left Frame Data
 												-- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ Inner Special Range 150x200 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ --
-												--r_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
-												--g_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
-												--b_vga <= LTP_Value(buf_vga_Y_out_cnt)(7 downto 5);
+												--r_vga <= LDM_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+												--g_vga <= LDM_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+												--b_vga <= LDM_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+
 												--r_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
 												--g_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
 												--b_vga <= LTP_Edge2_Value(buf_vga_Y_out_cnt)(7 downto 5);
-												TxD_Buffer <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 0);
-												r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
-												g_vga <= "111";
-												b_vga <= "111";
+
+												--TxD_Buffer <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 0);
+												TxD_Buffer <= CONV_STD_LOGIC_VECTOR(LDM_Cal_Buf_X1,8);
+												if(SB_buf_redata(buf_vga_Y_out_cnt) = x"FF")then
+													r_vga <= "111";
+													g_vga <= "111";
+													b_vga <= "111";
+												else
+													r_vga <= "000";
+													g_vga <= "000";
+													b_vga <= "000";
+												end if;
+
+												--if Erosion_Value(buf_vga_Y_out_cnt) = '1' then
+												--	r_vga <= "111";
+												--	g_vga <= "111";
+												--	b_vga <= "111";
+												--else
+												--	r_vga <= "000";
+												--	g_vga <= "000";
+												--	b_vga <= "000";
+												--end if;												
 												-- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ Inner Special Range 150x200 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ --		
 											end if;											
 										end if;
 									else
-										if((SB_buf_redata(buf_vga_Y_out_cnt) < x"FF") and (SB_buf_redata(buf_vga_Y_out_cnt) > x"3F"))then
+										--if((SB_buf_redata(buf_vga_Y_out_cnt) < x"FF") and (SB_buf_redata(buf_vga_Y_out_cnt) > x"3F"))then
+										--	g_vga <= "111";
+										--	r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);										
+										--	b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+										--else
+										--	g_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+										--	r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);										
+										--	b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+										--end if;	
+
+										--if((SB_buf_redata(buf_vga_Y_out_cnt) < x"FF") and (SB_buf_redata(buf_vga_Y_out_cnt) > x"3F"))then
+										--	r_vga <= "111";
+										--	g_vga <= "111";
+										--	b_vga <= "111";
+										--else
+										--	r_vga <= "000";
+										--	g_vga <= "000";
+										--	b_vga <= "000";
+										--end if;
+										if(SB_buf_redata(buf_vga_Y_out_cnt) = x"FF")then
+											r_vga <= "111";
 											g_vga <= "111";
-											r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);										
-											b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+											b_vga <= "111";
 										else
-											g_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
-											r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);										
-											b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
-										end if;	
-											
+											r_vga <= "000";
+											g_vga <= "000";
+											b_vga <= "000";
+										end if;
+										--r_vga <= LDM_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+										--g_vga <= LDM_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+										--b_vga <= LDM_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+										--if Erosion_Value(buf_vga_Y_out_cnt) = '1' then
+										--	r_vga <= "111";
+										--	g_vga <= "111";
+										--	b_vga <= "111";
+										--else
+										--	r_vga <= "000";
+										--	g_vga <= "000";
+										--	b_vga <= "000";
+										--end if;
+
 									end if;																	
 								end if;
 							end if;
 						else
-							if((SB_buf_redata(buf_vga_Y_out_cnt) < x"FF") and (SB_buf_redata(buf_vga_Y_out_cnt) > x"3F"))then
+							--if((SB_buf_redata(buf_vga_Y_out_cnt) < x"FF") and (SB_buf_redata(buf_vga_Y_out_cnt) > x"3F"))then
+							--	g_vga <= "111";
+							--	r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);										
+							--	b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+							--else
+							--	g_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+							--	r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);										
+							--	b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+							--end if;
+
+							--if((SB_buf_redata(buf_vga_Y_out_cnt) < x"FF") and (SB_buf_redata(buf_vga_Y_out_cnt) > x"3F"))then
+							--	r_vga <= "111";
+							--	g_vga <= "111";
+							--	b_vga <= "111";
+							--else
+							--	r_vga <= "000";
+							--	g_vga <= "000";
+							--	b_vga <= "000";
+							--end if;
+							if(SB_buf_redata(buf_vga_Y_out_cnt) = x"FF")then
+								r_vga <= "111";
 								g_vga <= "111";
-								r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);										
-								b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+								b_vga <= "111";
 							else
-								g_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
-								r_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);										
-								b_vga <= SB_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+								r_vga <= "000";
+								g_vga <= "000";
+								b_vga <= "000";
 							end if;
+							--r_vga <= LDM_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+							--g_vga <= LDM_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+							--b_vga <= LDM_buf_redata(buf_vga_Y_out_cnt)(7 downto 5);
+							--if Erosion_Value(buf_vga_Y_out_cnt) = '1' then
+							--	r_vga <= "111";
+							--	g_vga <= "111";
+							--	b_vga <= "111";
+							--else
+							--	r_vga <= "000";
+							--	g_vga <= "000";
+							--	b_vga <= "000";
+							--end if;
 						end if;
 					end if;								
 				else			
@@ -811,23 +1004,29 @@ elsif rising_edge(clk_video) then
 					g_vga <= "000";
 					b_vga <= "000";
 					buf_vga_Y_out_cnt <= 0;
-					if(Draw_Cnt = 255)then
-						Draw_Cnt <= CONV_INTEGER(RxD_Buffer(7 downto 0));
-					else
-						Draw_Cnt <= Draw_Cnt + 1;
-					end if;
+					LDM_Cal_Buf_Src_X <= 0;
+					LDM_Cal_Buf_Src_Y <= LDM_Cal_Buf_Src_Y + 1;
+					--if(Draw_Cnt = 255)then
+					--	Draw_Cnt <= CONV_INTEGER(RxD_Buffer(7 downto 0));
+					--else
+					--	Draw_Cnt <= Draw_Cnt + 1;
+					--end if;
 				end if;
 			else
 				r_vga <= "000";
 				g_vga <= "000";
 				b_vga <= "000";
 				buf_vga_Y_out_cnt <= 0;
+				LDM_Cal_Buf_Src_X <= 0;
+				LDM_Cal_Buf_Src_Y <= LDM_Cal_Buf_Src_Y;
 			end if;				
 		else
 			r_vga <= "000";
 			g_vga <= "000";
 			b_vga <= "000";
 			buf_vga_Y_out_cnt <= 0;
+			LDM_Cal_Buf_Src_X <= 0;
+			LDM_Cal_Buf_Src_Y <= 0;
 			Draw_Cnt <= CONV_INTEGER(RxD_Buffer(7 downto 0));
 		end if;
 --	
@@ -904,6 +1103,29 @@ else
 end if;
 end process;
 --Buf-state---------------------------------------------------------------------------------------------------
+--ThresholdSelect:process(DebugMux)
+--begin
+--	case DebugMux is --"0001 1111 1111"
+--		when "0000"	=> LDM_Encode_Threshold <= "0000"& RxD_Buffer(7 downto 0);
+--		when "0001"	=> LDM_Encode_Threshold <= "0001"& RxD_Buffer(7 downto 0);
+--		when "0010"	=> LDM_Encode_Threshold <= "0010"& RxD_Buffer(7 downto 0);
+--		when "0011"	=> LDM_Encode_Threshold <= "0011"& RxD_Buffer(7 downto 0);
+--		when "0100"	=> LDM_Encode_Threshold <= "0100"& RxD_Buffer(7 downto 0);
+--		when "0101"	=> LDM_Encode_Threshold <= "0101"& RxD_Buffer(7 downto 0);
+--		when "0110"	=> LDM_Encode_Threshold <= "0110"& RxD_Buffer(7 downto 0);
+--		when "0111"	=> LDM_Encode_Threshold <= "0111"& RxD_Buffer(7 downto 0);
+--		when "1000"	=> LDM_Encode_Threshold <= "1000"& RxD_Buffer(7 downto 0);
+--		when "1001"	=> LDM_Encode_Threshold <= "1001"& RxD_Buffer(7 downto 0);
+--		when "1010"	=> LDM_Encode_Threshold <= "1010"& RxD_Buffer(7 downto 0);
+--		when "1011"	=> LDM_Encode_Threshold <= "1011"& RxD_Buffer(7 downto 0);
+--		when "1100"	=> LDM_Encode_Threshold <= "1100"& RxD_Buffer(7 downto 0);
+--		when "1101"	=> LDM_Encode_Threshold <= "1101"& RxD_Buffer(7 downto 0);
+--		when "1110"	=> LDM_Encode_Threshold <= "1110"& RxD_Buffer(7 downto 0);		
+--		when "1111"	=> LDM_Encode_Threshold <= "1111"& RxD_Buffer(7 downto 0);	
+--		when others	=> LDM_Encode_Threshold <= "0000"& RxD_Buffer(7 downto 0);
+--	end case;
+--end process ThresholdSelect;
+
 ThresholdSelect:process(DebugMux)
 begin
 	case DebugMux is --"0001 1111 1111"
